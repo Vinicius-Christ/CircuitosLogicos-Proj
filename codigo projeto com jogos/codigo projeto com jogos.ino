@@ -15,8 +15,9 @@
   comando enviado, nao a posicao real.
 
   JOGO: aperte A para ligar/desligar. Com o jogo ligado o joystick fica desligado
-  e, sempre que algo estiver a 100 mm ou menos do laser, os servos fazem
-  movimentos sorteados para "fugir" (o laser fica montado em um dos servos).
+  e, sempre que algo estiver a 60 mm ou menos do laser, os DOIS servos fogem em
+  uma rajada de saltos sorteados: o Pan pula para angulos aleatorios e o Tilt
+  gira ora para um lado, ora para o outro (o laser fica montado em um dos servos).
 
   Ligacao do laser VL53L0X: o VIN deve ir no 5 V, a mesma tensao do Uno (assim
   fazem os projetos Adafruit/Pololu/SunFounder com OLED no mesmo I2C). Testado
@@ -57,7 +58,8 @@ Keypad teclado = Keypad(makeKeymap(mapaTeclas), pinosLinhas, pinosColunas, LINHA
 
 // Ajustes
 const char SENHA[] = "1234";
-const int DIST_FUGA = 100;       // jogo: algo a esta distancia (mm) ou menos faz os servos fugirem
+const int DIST_FUGA = 60;        // jogo: algo a esta distancia (mm) ou menos faz os servos fugirem
+const int SALTOS_FUGA = 4;       // jogo: quantos saltos (Pan + Tilt) tem cada fuga
 const int TILT_PARADA = 90;      // Tilt e servo de rotacao continua: write(90) = parado
 
 char digitada[5];
@@ -67,8 +69,10 @@ bool acesso = false;
 int valx, valy;                  // leituras do joystick, como no exemplo Servo
 int pan = 90, tilt = 90;         // angulos enviados aos servos e mostrados no display
 bool jogo = false;               // tecla A liga/desliga
-bool fugindo = false;            // o Tilt esta girando numa fuga
-unsigned long fugaFim = 0;       // quando o Tilt para de girar
+bool fugindo = false;            // fuga em andamento (varios saltos seguidos)
+byte saltosRestantes = 0;        // saltos que faltam nesta fuga
+int sentidoTilt = 1;             // sentido de giro do Tilt no proximo salto (alterna a cada salto)
+unsigned long proximoSalto = 0;  // quando termina o salto atual e comeca o proximo
 unsigned long proximaFuga = 0;   // intervalo minimo entre duas fugas
 float temperatura = NAN, umidade = NAN;
 int distancia = -1;              // mm, -1 = fora de alcance
@@ -140,21 +144,32 @@ void telaPainel() {
   display.display();
 }
 
-// Jogo: algo perto do laser -> os servos fazem movimentos sorteados para "fugir".
-void fogeDoObjeto(unsigned long agora) {
+// Jogo: um salto da fuga mexe os DOIS servos ao mesmo tempo.
+// Pan: pula para um angulo sorteado, pelo menos 40 graus longe do atual.
+// Tilt (rotacao continua): gira numa velocidade sorteada e, a cada salto, para o
+// lado oposto do anterior, para a mira nao ficar presa apontando para cima ou para baixo.
+void saltoDaFuga(unsigned long agora) {
   int novoPan;
   do {
     novoPan = random(0, 181);
-  } while (abs(novoPan - pan) < 45);               // sempre um movimento bem visivel
+  } while (abs(novoPan - pan) < 40);
   pan = novoPan;
   servoPan.write(pan);
 
-  int sentido = random(2) ? 1 : -1;                // Tilt (rotacao continua): sorteia o sentido,
-  tilt = TILT_PARADA + sentido * random(25, 61);   // a velocidade...
+  tilt = TILT_PARADA + sentidoTilt * random(25, 61);
   servoTilt.write(tilt);
-  fugaFim = agora + random(300, 801);              // ...e por quanto tempo ele gira
+  sentidoTilt = -sentidoTilt;
+
+  proximoSalto = agora + random(150, 251);         // duracao deste salto (ms)
+  saltosRestantes--;
+}
+
+// Jogo: algo perto do laser -> comeca uma fuga de varios saltos.
+void iniciaFuga(unsigned long agora) {
+  sentidoTilt = random(2) ? 1 : -1;
+  saltosRestantes = SALTOS_FUGA;
   fugindo = true;
-  proximaFuga = agora + 900;                       // da tempo do laser medir de novo
+  saltoDaFuga(agora);
 }
 
 // So inicia o laser se ele responder no I2C (0x29); assim um sensor ausente ou
@@ -259,13 +274,18 @@ void loop() {
     delay(15);
   } else {
     // Jogo: o joystick fica desligado; os servos so se mexem para fugir.
-    if (fugindo && agora >= fugaFim) {
-      tilt = TILT_PARADA;
-      servoTilt.write(tilt);      // o Tilt para de girar
-      fugindo = false;
+    if (fugindo && agora >= proximoSalto) {
+      if (saltosRestantes > 0) {
+        saltoDaFuga(agora);               // proximo salto da rajada
+      } else {
+        tilt = TILT_PARADA;
+        servoTilt.write(tilt);            // acabou a fuga: o Tilt para de girar
+        fugindo = false;
+        proximaFuga = agora + 300;        // da tempo do laser medir de novo
+      }
     }
-    if (sensorOk && distancia >= 0 && distancia <= DIST_FUGA && agora >= proximaFuga) {
-      fogeDoObjeto(agora);
+    if (!fugindo && sensorOk && distancia >= 0 && distancia <= DIST_FUGA && agora >= proximaFuga) {
+      iniciaFuga(agora);
     }
     delay(15);
   }
