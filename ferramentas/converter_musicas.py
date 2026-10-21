@@ -1,10 +1,10 @@
 """
-Converte sketches de musica do Arduino para as tabelas de notas do Radar (teclas 6 a 9).
+Converte sketches de musica do Arduino para as tabelas de notas do RadarPanTilt (teclas 6 a 9).
 
 Uso (no Prompt de Comando, dentro da pasta do projeto):
-    python ferramentas\converte_musica_tone.py arquivo1.ino [arquivo2.ino ...]
+    python ferramentas\converter_musicas.py arquivo1.ino [arquivo2.ino ...]
 
-Gera Musica6.h na pasta do sketch (Radar). Com esse arquivo, o Radar ganha as musicas
+Gera MusicasExtras.h na pasta do sketch (RadarPanTilt). Com esse arquivo, o RadarPanTilt ganha as musicas
 6, 7, 8 e 9 (na ordem em que forem convertidas, no maximo 4). Sem ele, so existem as 5
 musicas de sempre. Compile e grave de novo no Arduino depois de gerar.
 
@@ -109,11 +109,11 @@ def converte(origem):
 
 def pasta_do_sketch():
     raiz = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-    for nome in ("Radar_leve", "Radar"):
+    for nome in ("RadarPanTilt",):
         pasta = os.path.normpath(os.path.join(raiz, nome))
         if os.path.isdir(pasta):
             return pasta
-    print("Nao achei a pasta Radar ao lado de ferramentas.")
+    print("Nao achei a pasta RadarPanTilt ao lado de ferramentas.")
     sys.exit(1)
 
 
@@ -129,9 +129,9 @@ def main():
         print("Sao %d musicas e o maximo e %d." % (len(musicas), MAX_MUSICAS))
         sys.exit(1)
 
-    destino = os.path.join(pasta_do_sketch(), "Musica6.h")
+    destino = os.path.join(pasta_do_sketch(), "MusicasExtras.h")
     with open(destino, "w", encoding="utf-8") as f:
-        f.write("// Gerado por ferramentas/converte_musica_tone.py\n")
+        f.write("// Gerado por ferramentas/converter_musicas.py\n")
         f.write("#define N_EXTRAS %d\n" % len(musicas))
         for n, (nome, linhas, unidade) in enumerate(musicas):
             f.write("// Musica %d: %s\n#define TEMPO%d %d\n" % (6 + n, nome, 6 + n, unidade))

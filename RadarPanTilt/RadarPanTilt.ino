@@ -3,11 +3,11 @@
   Proj. Circuito - Vinicius Christ e Guilherme Ladislau
 
   Arquivos desta pasta:
-    Radar.ino        programa principal (este arquivo)
-    OledTexto.h     driver do display OLED (so texto, sem buffer na RAM)
-    Musicas.h       tabelas das musicas do buzzer
-    Musica6.h       (opcional) musicas 6 a 9, gerado por ferramentas/converte_musica_tone.py
-    VL53L0X.*       biblioteca do sensor laser
+    RadarPanTilt.ino   programa principal (este arquivo)
+    DisplayOled.h      display OLED (so texto, sem buffer na RAM)
+    MusicasBuzzer.h    as 5 musicas do buzzer
+    MusicasExtras.h    (opcional) musicas 6 a 9, gerado por ferramentas/converter_musicas.py
+    SensorLaser.h/.cpp sensor de distancia a laser VL53L0X (biblioteca da Pololu)
 
   Funcionamento:
     - Digite a senha (1234). '*' apaga o ultimo digito.
@@ -27,9 +27,9 @@
 
 #include <Wire.h>
 #include <Servo.h>
-#include "VL53L0X.h"
-#include "OledTexto.h"
-#include "Musicas.h"
+#include "SensorLaser.h"
+#include "DisplayOled.h"
+#include "MusicasBuzzer.h"
 
 // ===================================================================== PINOS
 #define PINO_SERVO_PAN    2

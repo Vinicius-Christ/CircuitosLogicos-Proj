@@ -1,7 +1,7 @@
 // Musicas do buzzer (tudo na flash).
 // Cada musica e uma tabela de {frequencia em Hz, duracao em unidades}. A duracao de uma
 // unidade, em ms, esta em TEMPOS. Frequencia 0 = pausa.
-// As teclas 1 a 5 tocam as musicas abaixo; 6 a 9 vem do arquivo Musica6.h, se existir.
+// As teclas 1 a 5 tocam as musicas abaixo; 6 a 9 vem do arquivo MusicasExtras.h, se existir.
 
 #pragma once
 
@@ -65,8 +65,8 @@ static const Nota MUS5[] PROGMEM = {
 
 // 6 a 9 (opcionais): arquivo gerado por ferramentas/converte_musica_tone.py.
 // Define N_EXTRAS (1 a 4), MUS6/TEMPO6 ... MUS9/TEMPO9.
-#if __has_include("Musica6.h")
-#include "Musica6.h"
+#if __has_include("MusicasExtras.h")
+#include "MusicasExtras.h"
 #else
 #define N_EXTRAS 0
 #endif

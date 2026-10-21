@@ -40,13 +40,13 @@ Solte o joystick ao liberar o acesso: nesse momento o programa mede onde fica o 
 | 6 a 9 | opcionais, veja abaixo |
 
 ### Músicas extras (opcional)
-As teclas 6 a 9 só existem (até 4 músicas extras) se houver um arquivo `Radar/Musica6.h` (ele não vem no repositório). Para criá-lo a partir de sketches Arduino de música, rode:
+As teclas 6 a 9 só existem (até 4 músicas extras) se houver um arquivo `RadarPanTilt/MusicasExtras.h` (ele não vem no repositório). Para criá-lo a partir de sketches Arduino de música, rode:
 
 ```
-python ferramentas/converte_musica_tone.py musica_a.ino [musica_b.ino ...]
+python ferramentas/converter_musicas.py musica_a.ino [musica_b.ino ...]
 ```
 
-O script entende dois formatos: `tone(pino, frequência, duração)` com `delay(ms)`, e vetores `melody1[]`/`beats1[]` com o período das notas (cada melodia vira uma música). Ele gera o `Radar/Musica6.h`, e as músicas ganham as teclas 6, 7, 8 e 9 na ordem em que foram convertidas; depois é só gravar o programa de novo. Use apenas músicas que você tenha direito de usar.
+O script entende dois formatos: `tone(pino, frequência, duração)` com `delay(ms)`, e vetores `melody1[]`/`beats1[]` com o período das notas (cada melodia vira uma música). Ele gera o `RadarPanTilt/MusicasExtras.h`, e as músicas ganham as teclas 6, 7, 8 e 9 na ordem em que foram convertidas; depois é só gravar o programa de novo. Use apenas músicas que você tenha direito de usar.
 
 ## Ligações
 
@@ -74,7 +74,7 @@ Observações:
 ## Como gravar no Arduino
 
 1. Instale a [Arduino IDE](https://www.arduino.cc/en/software) (ou o `arduino-cli`) com o núcleo **Arduino AVR Boards** (1.8.3 ou mais novo).
-2. Abra `Radar/Radar.ino`. Os outros arquivos da pasta (`OledTexto.h`, `Musicas.h`, `VL53L0X.h`, `VL53L0X.cpp`) abrem junto.
+2. Abra `RadarPanTilt/RadarPanTilt.ino`. Os outros arquivos da pasta (`DisplayOled.h`, `MusicasBuzzer.h`, `SensorLaser.h`, `SensorLaser.cpp`) abrem junto.
 3. Placa: **Arduino Uno**. Escolha a porta e clique em **Carregar**.
 
 Não é preciso instalar nenhuma biblioteca extra: o driver do display, a leitura do DHT11 e a do teclado estão no próprio projeto, e `Wire` e `Servo` já vêm com a IDE.
@@ -82,19 +82,20 @@ Não é preciso instalar nenhuma biblioteca extra: o driver do display, a leitur
 ## Estrutura
 
 ```
-Radar/
-  Radar.ino      programa principal
-  OledTexto.h    driver do display OLED (só texto, sem usar a RAM de buffer)
-  Musicas.h      tabelas das músicas do buzzer
-  VL53L0X.h/.cpp biblioteca do sensor laser (Pololu)
+RadarPanTilt/
+  RadarPanTilt.ino   programa principal
+  DisplayOled.h      display OLED (só texto, sem usar RAM de buffer)
+  MusicasBuzzer.h    as 5 músicas do buzzer
+  SensorLaser.h/.cpp sensor de distância a laser VL53L0X (biblioteca da Pololu)
+  MusicasExtras.h    (opcional, não vem no repositório) músicas 6 a 9
 ferramentas/
-  converte_musica_tone.py   gera as músicas extras (6 a 9)
-projetoTrabalho.sim1        simulação do circuito
+  converter_musicas.py   gera o MusicasExtras.h
+projetoTrabalho.sim1     simulação do circuito
 ```
 
 ## Ajustes
 
-No começo de `Radar/Radar.ino`, na seção **AJUSTES**:
+No começo de `RadarPanTilt/RadarPanTilt.ino`, na seção **AJUSTES**:
 
 | Nome | O que muda |
 |---|---|
@@ -108,5 +109,5 @@ A senha (`1234`) está na função `loop()`, na linha com `memcmp_P`.
 
 ## Créditos
 
-- `VL53L0X.h/.cpp`: biblioteca VL53L0X da Pololu, sem alterações.
-- `OledTexto.h`: usa a fonte e a sequência de inicialização da biblioteca SimpleOLED (Jobit Joseph, licença MIT, cabeçalho mantido no arquivo).
+- `SensorLaser.h/.cpp`: biblioteca VL53L0X da Pololu, sem alterações.
+- `DisplayOled.h`: usa a fonte e a sequência de inicialização da biblioteca SimpleOLED (Jobit Joseph, licença MIT, cabeçalho mantido no arquivo).
