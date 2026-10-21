@@ -1,8 +1,0 @@
-Projeto unico: Radar Pan/Tilt com jogo, musicas e README
-
-- Remove as duas versoes antigas (com jogos / apenas)
-- Adiciona Radar/ (codigo reorganizado, nomes por componente)
-- Jogo de fuga com 3 movimentos, 100 mm, modo musica, nome do Guilherme Ladislau
-- README com ligacoes, uso e gravacao
-
-Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
