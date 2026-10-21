@@ -40,7 +40,7 @@ Solte o joystick ao liberar o acesso: nesse momento o programa mede onde fica o 
 | 6 a 9 | opcionais, veja abaixo |
 
 ### Músicas extras (opcional)
-As teclas 6 a 9 só existem (até 4 músicas extras) se houver um arquivo `Radar/Musica6.h` (ele não vem no repositório). Para criá-lo a partir de sketches Arduino que usam `tone(pino, frequência, duração)` e `delay(ms)`:
+As teclas 6 a 9 só existem (até 4 músicas extras) se houver um arquivo `Radar/Musica6.h` (ele não vem no repositório). Para criá-lo a partir de sketches Arduino de música, rode:
 
 ```
 python ferramentas/converte_musica_tone.py musica_a.ino [musica_b.ino ...]
