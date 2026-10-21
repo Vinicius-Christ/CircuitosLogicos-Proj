@@ -37,16 +37,16 @@ Solte o joystick ao liberar o acesso: nesse momento o programa mede onde fica o 
 | 3 | Brilha Brilha Estrelinha |
 | 4 | Jingle Bells |
 | 5 | Frère Jacques |
-| 6 e 7 | opcionais, veja abaixo |
+| 6 a 9 | opcionais, veja abaixo |
 
 ### Músicas extras (opcional)
-As teclas 6 e 7 só existem se houver um arquivo `Radar/Musica6.h` (ele não vem no repositório). Para criá-lo a partir de sketches Arduino que usam `tone(pino, frequência, duração)` e `delay(ms)`:
+As teclas 6 a 9 só existem (até 4 músicas extras) se houver um arquivo `Radar/Musica6.h` (ele não vem no repositório). Para criá-lo a partir de sketches Arduino que usam `tone(pino, frequência, duração)` e `delay(ms)`:
 
 ```
-python ferramentas/converte_musica_tone.py musica_a.ino [musica_b.ino]
+python ferramentas/converte_musica_tone.py musica_a.ino [musica_b.ino ...]
 ```
 
-O script gera o `Radar/Musica6.h`; depois é só gravar o programa de novo. Use apenas músicas que você tenha direito de usar.
+O script entende dois formatos: `tone(pino, frequência, duração)` com `delay(ms)`, e vetores `melody1[]`/`beats1[]` com o período das notas (cada melodia vira uma música). Ele gera o `Radar/Musica6.h`, e as músicas ganham as teclas 6, 7, 8 e 9 na ordem em que foram convertidas; depois é só gravar o programa de novo. Use apenas músicas que você tenha direito de usar.
 
 ## Ligações
 
@@ -88,7 +88,7 @@ Radar/
   Musicas.h      tabelas das músicas do buzzer
   VL53L0X.h/.cpp biblioteca do sensor laser (Pololu)
 ferramentas/
-  converte_musica_tone.py   gera as músicas extras (6 e 7)
+  converte_musica_tone.py   gera as músicas extras (6 a 9)
 projetoTrabalho.sim1        simulação do circuito
 ```
 

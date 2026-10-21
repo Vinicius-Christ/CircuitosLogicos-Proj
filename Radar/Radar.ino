@@ -6,7 +6,7 @@
     Radar.ino        programa principal (este arquivo)
     OledTexto.h     driver do display OLED (so texto, sem buffer na RAM)
     Musicas.h       tabelas das musicas do buzzer
-    Musica6.h       (opcional) musicas 6 e 7, gerado por ferramentas/converte_musica_tone.py
+    Musica6.h       (opcional) musicas 6 a 9, gerado por ferramentas/converte_musica_tone.py
     VL53L0X.*       biblioteca do sensor laser
 
   Funcionamento:
@@ -15,7 +15,7 @@
     - Joystick: controla a VELOCIDADE dos servos; no centro eles param onde estao.
     - Tecla A: liga/desliga o JOGO. Com algo a DIST_FUGA mm ou menos do laser, os servos
       fogem (um movimento por vez, alternando Pan e Tilt). O joystick fica desligado.
-    - Tecla D: liga/desliga a MUSICA. Teclas 1 a 7 escolhem a musica, '*' para.
+    - Tecla D: liga/desliga a MUSICA. Teclas 1 a 9 escolhem a musica, '*' para.
       Jogo e musica nao ficam ligados juntos.
     - Cada tecla da um bipe curto no buzzer (menos no modo musica).
 

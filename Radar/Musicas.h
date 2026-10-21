@@ -1,7 +1,7 @@
 // Musicas do buzzer (tudo na flash).
 // Cada musica e uma tabela de {frequencia em Hz, duracao em unidades}. A duracao de uma
 // unidade, em ms, esta em TEMPOS. Frequencia 0 = pausa.
-// As teclas 1 a 5 tocam as musicas abaixo; 6 e 7 vem do arquivo Musica6.h, se existir.
+// As teclas 1 a 5 tocam as musicas abaixo; 6 a 9 vem do arquivo Musica6.h, se existir.
 
 #pragma once
 
@@ -63,8 +63,8 @@ static const Nota MUS5[] PROGMEM = {
   {NC4,2},{NG3,2},{NC4,4},{NC4,2},{NG3,2},{NC4,4}
 };
 
-// 6 e 7 (opcionais): arquivo gerado por ferramentas/converte_musica_tone.py.
-// Define N_EXTRAS (1 ou 2), MUS6/TEMPO6 e MUS7/TEMPO7.
+// 6 a 9 (opcionais): arquivo gerado por ferramentas/converte_musica_tone.py.
+// Define N_EXTRAS (1 a 4), MUS6/TEMPO6 ... MUS9/TEMPO9.
 #if __has_include("Musica6.h")
 #include "Musica6.h"
 #else
@@ -80,6 +80,12 @@ static const Nota* const MUSICAS[N_MUSICAS] PROGMEM = {MUS1, MUS2, MUS3, MUS4, M
 #if N_EXTRAS >= 2
   , MUS7
 #endif
+#if N_EXTRAS >= 3
+  , MUS8
+#endif
+#if N_EXTRAS >= 4
+  , MUS9
+#endif
 };
 
 static const uint16_t TAMANHOS[N_MUSICAS] PROGMEM = {
@@ -91,6 +97,12 @@ static const uint16_t TAMANHOS[N_MUSICAS] PROGMEM = {
 #if N_EXTRAS >= 2
   , sizeof(MUS7) / sizeof(Nota)
 #endif
+#if N_EXTRAS >= 3
+  , sizeof(MUS8) / sizeof(Nota)
+#endif
+#if N_EXTRAS >= 4
+  , sizeof(MUS9) / sizeof(Nota)
+#endif
 };
 
 // Duracao de uma unidade, em ms, de cada musica.
@@ -100,5 +112,11 @@ static const byte TEMPOS[N_MUSICAS] PROGMEM = {230, 170, 180, 130, 200
 #endif
 #if N_EXTRAS >= 2
   , TEMPO7
+#endif
+#if N_EXTRAS >= 3
+  , TEMPO8
+#endif
+#if N_EXTRAS >= 4
+  , TEMPO9
 #endif
 };
