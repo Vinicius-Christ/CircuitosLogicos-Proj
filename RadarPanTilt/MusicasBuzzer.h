@@ -72,10 +72,14 @@ static const Nota ABERTURA[] PROGMEM = {
 
 // 6 a 9 (opcionais): arquivo gerado por ferramentas/converte_musica_tone.py.
 // Define N_EXTRAS (1 a 4), MUS6/TEMPO6 ... MUS9/TEMPO9.
+#if defined(__has_include)
 #if __has_include("MusicasExtras.h")
 #include "MusicasExtras.h"
 #else
 #define N_EXTRAS 0
+#endif
+#else
+#include "MusicasExtras.h"      // compilador antigo, sem __has_include: o arquivo precisa existir
 #endif
 
 #define N_MUSICAS (5 + N_EXTRAS)
