@@ -177,7 +177,9 @@ static const byte OLED_INIT[] PROGMEM = {
   0xAF              // display ligado
 };
 
-static byte oledN;  // bytes de dados na transmissao aberta (o buffer do Wire tem 32)
+static byte oledN;        // bytes de dados na transmissao aberta (o buffer do Wire tem 32)
+static byte oledColuna;   // coluna onde cai o proximo byte de dados
+static byte oledPagina;   // pagina (linha de texto) em que se esta escrevendo
 
 static inline void oledCmd(byte c) {
   Wire.beginTransmission(OLED_ENDERECO);
@@ -195,6 +197,8 @@ static inline void oledInicia() {
 static inline void oledPos(byte col, byte pagina) {
   oledCmd(0x21); oledCmd(col); oledCmd(127);
   oledCmd(0x22); oledCmd(pagina); oledCmd(pagina);
+  oledColuna = col;
+  oledPagina = pagina;
 }
 
 static inline void oledAbre() {
@@ -204,12 +208,14 @@ static inline void oledAbre() {
 }
 
 static inline void oledByte(byte b) {
-  if (oledN >= 30) {            // buffer do Wire cheio: fecha e abre outra transmissao
-    Wire.endTransmission();
+  if (oledN >= 30) {            // buffer do Wire cheio: fecha, reposiciona e abre outra transmissao
+    Wire.endTransmission();     // (reposicionar nao depende de o display lembrar onde parou)
+    oledPos(oledColuna, oledPagina);
     oledAbre();
   }
   Wire.write(b);
   oledN++;
+  oledColuna++;
 }
 
 static inline void oledFim() { Wire.endTransmission(); }

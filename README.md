@@ -90,8 +90,16 @@ RadarPanTilt/
   MusicasExtras.h    (opcional, não vem no repositório) músicas 6 a 9
 ferramentas/
   converter_musicas.py   gera o MusicasExtras.h
-projetoTrabalho.sim1     simulação do circuito
+simulacao/
+  projetoTrabalho.sim1   circuito para o SimulIDE
+  RadarPanTilt.hex       programa compilado para carregar no simulador
 ```
+
+## Simulação (SimulIDE)
+
+Abra `simulacao/projetoTrabalho.sim1`, clique com o botão direito no Uno, escolha **Load firmware** e selecione `simulacao/RadarPanTilt.hex`.
+
+No simulador não existem o laser VL53L0X nem o buzzer (o display mostra "SEM SENSOR"), e o sensor de temperatura é um DHT22 (o programa lê DHT11 e DHT22). Os servos estão com pulso de 544 a 2400 µs, igual à biblioteca Servo.
 
 ## Ajustes
 

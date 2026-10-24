@@ -17,7 +17,8 @@
       fogem (um movimento por vez, alternando Pan e Tilt). O joystick fica desligado.
     - Tecla D: liga/desliga a MUSICA. Teclas 1 a 9 escolhem a musica, '*' para.
       Jogo e musica nao ficam ligados juntos.
-    - Cada tecla da um bipe curto no buzzer (menos no modo musica).
+    - Cada tecla da um bipe curto no buzzer (menos enquanto uma musica toca).
+    - Ao ligar, o buzzer toca uma fanfarra de abertura.
 
   Ligacoes especiais:
     - Buzzer ativo de 5 V: + no S1 (pino 1 do Arduino, o TX) e - no G1. Como o pino 1 e
@@ -141,6 +142,19 @@ static void buzzerBipe() {
   digitalWrite(PINO_BUZZER, LOW);
 }
 
+// Toca a abertura (bloqueia ~1,5 s; so usada ao ligar).
+static void buzzerAbertura() {
+  for (byte i = 0; i < sizeof(ABERTURA) / sizeof(Nota); i++) {
+    unsigned int hz = pgm_read_word(&ABERTURA[i].hz);
+    unsigned int ms = (unsigned int)pgm_read_byte(&ABERTURA[i].un) * 10;
+    if (hz) tone(PINO_BUZZER, hz);
+    delay(ms - ms / 8);
+    noTone(PINO_BUZZER);
+    digitalWrite(PINO_BUZZER, LOW);
+    delay(ms / 8);
+  }
+}
+
 static void musicaPara() {
   noTone(PINO_BUZZER);
   digitalWrite(PINO_BUZZER, LOW);
@@ -176,7 +190,7 @@ static bool dhtEsperaNivel(byte nivel, unsigned int limiteUs) {
   return true;
 }
 
-// Le o DHT11 sem biblioteca; true se leu e o checksum bateu. As interrupcoes ficam
+// Le o DHT11 (ou DHT22) sem biblioteca; true se leu e o checksum bateu. As interrupcoes ficam
 // ligadas (os servos nao tremem): bit 0 dura ~26 us, bit 1 ~70 us, limite de 45 us.
 static bool dhtLe() {
   byte dados[5] = {0, 0, 0, 0, 0};
@@ -196,8 +210,13 @@ static bool dhtLe() {
     if (micros() - t > 45) dados[i >> 3] |= 1;
   }
   if ((byte)(dados[0] + dados[1] + dados[2] + dados[3]) != dados[4]) return false;
-  dhtUmidade = dados[0];
-  dhtTemp10 = dados[2] * 10 + (dados[3] & 0x0F);
+  if (dados[0] < 4) {                              // DHT22 (o SimulIDE so tem este): decimos em 16 bits
+    dhtUmidade = (((unsigned int)dados[0] << 8) | dados[1]) / 10;
+    dhtTemp10 = (dados[2] & 0x80) ? 0 : (((int)dados[2] << 8) | dados[3]);
+  } else {                                         // DHT11 (o sensor real): inteiro + decimal
+    dhtUmidade = dados[0];
+    dhtTemp10 = dados[2] * 10 + (dados[3] & 0x0F);
+  }
   return true;
 }
 
@@ -437,14 +456,15 @@ void setup() {
   oledInicia();
 
   telaInicial();
-  delay(2500);
+  buzzerAbertura();
+  delay(1000);
   laserProcura();
   telaSenha();
 }
 
 void loop() {
   char tecla = tecladoLeTecla();
-  if (tecla && !(acessoLiberado && modoMusica)) buzzerBipe();   // no modo musica as teclas tocam
+  if (tecla && musicaAtual == 255) buzzerBipe();   // bipe em toda tecla, menos enquanto uma musica toca
 
   // ---------- Senha ----------
   if (!acessoLiberado) {
