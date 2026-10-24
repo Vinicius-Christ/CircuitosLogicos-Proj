@@ -48,6 +48,8 @@ static const char TECLADO_MAPA[]     PROGMEM = "123A456B789C*0#D";
 // =================================================================== AJUSTES
 #define DIST_FUGA        100     // jogo: distancia (mm) ou menos que faz os servos fugirem
 #define MOVIMENTOS_FUGA  3       // jogo: movimentos de cada fuga (Pan, Tilt, Pan...)
+#define SERVO_MIN        5       // menor angulo permitido (graus): evita o servo forcar o batente
+#define SERVO_MAX        175     // maior angulo permitido (graus)
 #define JOY_ZONA_MORTA   60      // folga em volta do centro do joystick (de 0 a 1023)
 #define JOY_VEL_MAX      250     // graus por segundo com o joystick inclinado ate o fim
 #define JOY_INVERTE_PAN  0       // 1 = inverte o sentido do Pan
@@ -372,12 +374,12 @@ static void painelAtualiza() {
 static void fugaMovimento(unsigned long agora) {
   byte novo;
   if ((MOVIMENTOS_FUGA - movimentosRestantes) % 2 == 0) {
-    do { novo = random(0, 181); } while (abs(novo - panGraus) < 40);
+    do { novo = random(SERVO_MIN, SERVO_MAX + 1); } while (abs(novo - panGraus) < 40);
     panGraus = novo;
     pan16avos = panGraus * 16;                     // o joystick continua daqui quando o jogo acabar
     servoPan.write(panGraus);
   } else {
-    do { novo = random(0, 181); } while (abs(novo - tiltGraus) < 40);
+    do { novo = random(SERVO_MIN, SERVO_MAX + 1); } while (abs(novo - tiltGraus) < 40);
     tiltGraus = novo;
     tilt16avos = tiltGraus * 16;
     servoTilt.write(tiltGraus);
@@ -402,7 +404,7 @@ static void joyMoveEixo(int &angulo16avos, int leitura, int centro, bool inverte
   if (modulo <= JOY_ZONA_MORTA) return;
   long passo = (long)(modulo - JOY_ZONA_MORTA) * dt * (JOY_VEL_MAX * 16L) / (1000L * (512 - JOY_ZONA_MORTA));
   if ((desvio < 0) != inverte) passo = -passo;
-  angulo16avos = constrain(angulo16avos + passo, 0, 180 * 16);
+  angulo16avos = constrain(angulo16avos + passo, SERVO_MIN * 16, SERVO_MAX * 16);
 }
 
 // Mede onde o joystick fica em repouso (ele deve estar solto).

@@ -101,6 +101,7 @@ No começo de `RadarPanTilt/RadarPanTilt.ino`, na seção **AJUSTES**:
 |---|---|
 | `DIST_FUGA` | distância (mm) que faz os servos fugirem no jogo |
 | `MOVIMENTOS_FUGA` | quantos movimentos tem cada fuga |
+| `SERVO_MIN`, `SERVO_MAX` | limites de ângulo dos servos (5° e 175°), para não forçar o batente |
 | `JOY_ZONA_MORTA` | folga no centro do joystick |
 | `JOY_VEL_MAX` | velocidade máxima dos servos (graus por segundo) |
 | `JOY_INVERTE_PAN`, `JOY_INVERTE_TILT` | colocar 1 inverte o sentido do servo |
