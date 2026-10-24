@@ -37,16 +37,19 @@ Solte o joystick ao liberar o acesso: nesse momento o programa mede onde fica o 
 | 3 | Brilha Brilha Estrelinha |
 | 4 | Jingle Bells |
 | 5 | Frère Jacques |
-| 6 a 9 | opcionais, veja abaixo |
+| 6 | Megalovania |
+| 7 | All Star |
+| 8 | Star Wars, Marcha Imperial |
+| 9 | Star Wars, Tema |
 
-### Músicas extras (opcional)
-As teclas 6 a 9 só existem (até 4 músicas extras) se houver um arquivo `RadarPanTilt/MusicasExtras.h` (ele não vem no repositório). Para criá-lo a partir de sketches Arduino de música, rode:
+### Músicas 6 a 9
+Elas estão no arquivo `RadarPanTilt/MusicasExtras.h`, gerado a partir de sketches de música para Arduino pelo script `ferramentas/converter_musicas.py`. Para trocar por outras músicas (até 4):
 
 ```
 python ferramentas/converter_musicas.py musica_a.ino [musica_b.ino ...]
 ```
 
-O script entende dois formatos: `tone(pino, frequência, duração)` com `delay(ms)`, e vetores `melody1[]`/`beats1[]` com o período das notas (cada melodia vira uma música). Ele gera o `RadarPanTilt/MusicasExtras.h`, e as músicas ganham as teclas 6, 7, 8 e 9 na ordem em que foram convertidas; depois é só gravar o programa de novo. Use apenas músicas que você tenha direito de usar.
+O script entende dois formatos: `tone(pino, frequência, duração)` com `delay(ms)`, e vetores `melody1[]`/`beats1[]` com o período das notas (cada melodia vira uma música). As músicas ganham as teclas 6, 7, 8 e 9 na ordem em que foram convertidas; depois é só gravar o programa de novo. Se apagar o `MusicasExtras.h`, o programa continua funcionando só com as músicas 1 a 5.
 
 ## Ligações
 
@@ -87,7 +90,7 @@ RadarPanTilt/
   DisplayOled.h      display OLED (só texto, sem usar RAM de buffer)
   MusicasBuzzer.h    as 5 músicas do buzzer
   SensorLaser.h/.cpp sensor de distância a laser VL53L0X (biblioteca da Pololu)
-  MusicasExtras.h    (opcional, não vem no repositório) músicas 6 a 9
+  MusicasExtras.h    músicas 6 a 9 (gerado pelo conversor)
 ferramentas/
   converter_musicas.py   gera o MusicasExtras.h
 simulacao/
@@ -117,6 +120,8 @@ No começo de `RadarPanTilt/RadarPanTilt.ino`, na seção **AJUSTES**:
 A senha (`1234`) está na função `loop()`, na linha com `memcmp_P`.
 
 ## Créditos
+
+- Músicas 6 a 9: notas convertidas de sketches de Arduino de terceiros. Megalovania vem do repositório [Arduino-Music-Codes](https://github.com/AnonymousAlly/Arduino-Music-Codes); as duas de Star Wars vêm da coleção [Arduino-Buzzer-Tone-Codes](https://github.com/AbhishekGhosh/Arduino-Buzzer-Tone-Codes) (código sob licença BSD de 2 cláusulas, baseado no exemplo Lesson5_PiezoPlayMelody do rbots); a fonte do All Star não foi registrada. As músicas pertencem aos seus autores originais.
 
 - `SensorLaser.h/.cpp`: biblioteca VL53L0X da Pololu, sem alterações.
 - `DisplayOled.h`: usa a fonte e a sequência de inicialização da biblioteca SimpleOLED (Jobit Joseph, licença MIT, cabeçalho mantido no arquivo).
