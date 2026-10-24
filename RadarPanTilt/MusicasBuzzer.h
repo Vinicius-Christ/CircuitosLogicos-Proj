@@ -63,6 +63,13 @@ static const Nota MUS5[] PROGMEM = {
   {NC4,2},{NG3,2},{NC4,4},{NC4,2},{NG3,2},{NC4,4}
 };
 
+// Som de abertura ao ligar (fanfarra original, estilo videogame). Unidade = 10 ms.
+static const Nota ABERTURA[] PROGMEM = {
+  {523,9},{659,9},{784,9},{1047,9},{784,9},{1047,18},{0,6},
+  {880,9},{1175,9},{1319,9},{1175,9},{1319,9},{1568,12},{0,4},
+  {1047,9},{1319,9},{1568,9},{2093,35}
+};
+
 // 6 a 9 (opcionais): arquivo gerado por ferramentas/converte_musica_tone.py.
 // Define N_EXTRAS (1 a 4), MUS6/TEMPO6 ... MUS9/TEMPO9.
 #if __has_include("MusicasExtras.h")
