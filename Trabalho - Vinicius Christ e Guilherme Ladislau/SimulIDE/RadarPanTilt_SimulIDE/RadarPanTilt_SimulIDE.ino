@@ -1,109 +1,71 @@
-/*
-  Radar Pan/Tilt - Arduino Uno (ATmega328P)
-  Proj. Circuito - Vinicius Christ e Guilherme Ladislau
-
-  Arquivos desta pasta:
-    RadarPanTilt.ino   programa principal (este arquivo)
-    DisplayOled.h      display OLED (so texto, sem buffer na RAM)
-    MusicasBuzzer.h    as 5 musicas do buzzer
-    MusicasExtras.h    (opcional) musicas 6 a 9, gerado por ferramentas/converter_musicas.py
-    SensorLaser.h/.cpp sensor de distancia a laser VL53L0X (biblioteca da Pololu)
-
-  Funcionamento:
-    - Digite a senha (1234). '*' apaga o ultimo digito.
-    - Painel: Pan, Tilt, temperatura, umidade, distancia do laser e presenca.
-    - Joystick: controla a VELOCIDADE dos servos; no centro eles param onde estao.
-    - Tecla A: liga/desliga o JOGO. Com algo a DIST_FUGA mm ou menos do laser, os servos
-      fogem (um movimento por vez, alternando Pan e Tilt). O joystick fica desligado.
-    - Tecla D: liga/desliga a MUSICA. Teclas 1 a 9 escolhem a musica, '*' para.
-      Jogo e musica nao ficam ligados juntos.
-    - Cada tecla da um bipe curto no buzzer (menos enquanto uma musica toca).
-    - Ao ligar, o buzzer toca uma fanfarra de abertura.
-
-  Ligacoes especiais:
-    - Buzzer ativo de 5 V: + no S1 (pino 1 do Arduino, o TX) e - no G1. Como o pino 1 e
-      o TX da serial, este programa nao usa Serial.
-    - Laser VL53L0X: o VIN deve ir no 5 V.
-*/
-
 #include <Wire.h>
 #include <Servo.h>
 #include "SensorLaser.h"
 #include "DisplayOled.h"
 #include "MusicasBuzzer.h"
 
-// ===================================================================== PINOS
 #define PINO_SERVO_PAN    2
 #define PINO_SERVO_TILT   3
-#define PINO_DHT11        4      // a leitura usa PIND, entao este pino precisa ser o PD4
-#define PINO_JOY_X        A1     // joystick -> Pan
-#define PINO_JOY_Y        A0     // joystick -> Tilt
-#define PINO_PIR          A3     // sensor de presenca HC-SR501
+#define PINO_DHT11        4
+#define PINO_JOY_X        A1
+#define PINO_JOY_Y        A0
+#define PINO_PIR          A3
 #define PINO_BUZZER       1
-#define ENDERECO_LASER    0x29   // endereco I2C do VL53L0X
+#define ENDERECO_LASER    0x29
 
 static const byte TECLADO_LINHAS[4]  PROGMEM = {8, 7, 6, 5};
 static const byte TECLADO_COLUNAS[4] PROGMEM = {12, 11, 10, 9};
 static const char TECLADO_MAPA[]     PROGMEM = "123A456B789C*0#D";
 
-// =================================================================== AJUSTES
-#define DIST_FUGA        100     // jogo: distancia (mm) ou menos que faz os servos fugirem
-#define MOVIMENTOS_FUGA  3       // jogo: movimentos de cada fuga (Pan, Tilt, Pan...)
-#define SERVO_MIN        5       // menor angulo permitido (graus): evita o servo forcar o batente
-#define SERVO_MAX        175     // maior angulo permitido (graus)
-#define JOY_ZONA_MORTA   60      // folga em volta do centro do joystick (de 0 a 1023)
-#define JOY_VEL_MAX      250     // graus por segundo com o joystick inclinado ate o fim
-#define JOY_INVERTE_PAN  0       // 1 = inverte o sentido do Pan
-#define JOY_INVERTE_TILT 0       // 1 = inverte o sentido do Tilt
+#define DIST_FUGA        100
+#define MOVIMENTOS_FUGA  3
+#define SERVO_PAN_MIN    10
+#define SERVO_PAN_MAX    170
+#define SERVO_TILT_MIN   20
+#define SERVO_TILT_MAX   160
+#define JOY_ZONA_MORTA   60
+#define JOY_VEL_MAX      250
+#define JOY_INVERTE_PAN  0
+#define JOY_INVERTE_TILT 0
 
-// ===================================================================== ESTADO
 VL53L0X laser;
 Servo servoPan;
 Servo servoTilt;
 
-// Senha
 char senhaDigitada[4];
 byte qtdDigitos = 0;
 bool acessoLiberado = false;
 
-// Servos e joystick
-byte panGraus = 90, tiltGraus = 90;                  // angulos enviados aos servos
-int pan16avos = 90 * 16, tilt16avos = 90 * 16;       // os mesmos angulos em 1/16 de grau
-int joyCentroX = 512, joyCentroY = 512;              // joystick em repouso (medido ao liberar o acesso)
+byte panGraus = 90, tiltGraus = 90;
+int pan16avos = 90 * 16, tilt16avos = 90 * 16;
+int joyCentroX = 512, joyCentroY = 512;
 unsigned long tUltimoLoop = 0;
 
-// Modos
 bool modoJogo = false;
 bool modoMusica = false;
 
-// Fuga (jogo)
 bool emFuga = false;
 byte movimentosRestantes = 0;
 unsigned long tProximoMovimento = 0;
 unsigned long tProximaFuga = 0;
 
-// Sensores
-int dhtTemp10 = -1;                  // temperatura x10 (205 = 20,5 C); -1 = sem leitura
-byte dhtUmidade = 255;               // % ; 255 = sem leitura
-int laserDistancia = -1;             // mm ; -1 = fora de alcance
+int dhtTemp10 = -1;
+byte dhtUmidade = 255;
+int laserDistancia = -1;
 bool laserOk = false;
 byte laserTentativas = 0;
-byte laserFalhas = 0;                // leituras seguidas sem resposta
+byte laserFalhas = 0;
 bool pirPresenca = false;
 unsigned long tLaser = 0, tDht = 0;
 unsigned long tProximaBuscaLaser = 3000;
 
-// Musica
-byte musicaAtual = 255;              // 0 a N_MUSICAS-1; 255 = nenhuma
+byte musicaAtual = 255;
 unsigned int musicaNota = 0;
 unsigned long tProximaNota = 0;
 
-// Ultimos valores desenhados no painel (so redesenha o que mudou)
 byte ultPan, ultTilt, ultUmidade, ultPresenca, ultModo;
 int ultTemp10, ultDistancia;
 
-// =================================================================== TECLADO
-// Varre as 4 colunas e devolve a tecla apertada (0 = nenhuma).
 static char tecladoVarre() {
   char achada = 0;
   for (byte c = 0; c < 4; c++) {
@@ -119,8 +81,6 @@ static char tecladoVarre() {
   return achada;
 }
 
-// Devolve a tecla UMA vez, quando e apertada. Varre a cada 10 ms e exige duas leituras
-// iguais para tirar o ruido do contato.
 static char tecladoLeTecla() {
   static unsigned long tVarredura = 0;
   static char anterior = 0;
@@ -135,14 +95,12 @@ static char tecladoLeTecla() {
   return resultado;
 }
 
-// ==================================================================== BUZZER
 static void buzzerBipe() {
   digitalWrite(PINO_BUZZER, HIGH);
   delay(60);
   digitalWrite(PINO_BUZZER, LOW);
 }
 
-// Toca a abertura (bloqueia ~1,5 s; so usada ao ligar).
 static void buzzerAbertura() {
   for (byte i = 0; i < sizeof(ABERTURA) / sizeof(Nota); i++) {
     unsigned int hz = pgm_read_word(&ABERTURA[i].hz);
@@ -168,20 +126,17 @@ static void musicaInicia(byte numero) {
   tProximaNota = 0;
 }
 
-// Chamada a cada volta do loop: toca a proxima nota quando chega a hora (sem travar).
 static void musicaAtualiza(unsigned long agora) {
   if (musicaAtual == 255 || (long)(agora - tProximaNota) < 0) return;
   if (musicaNota >= pgm_read_word(&TAMANHOS[musicaAtual])) { musicaPara(); return; }
   const Nota* notas = (const Nota*)pgm_read_word(&MUSICAS[musicaAtual]);
   unsigned int hz = pgm_read_word(&notas[musicaNota].hz);
   unsigned int ms = (unsigned int)pgm_read_byte(&notas[musicaNota].un) * pgm_read_byte(&TEMPOS[musicaAtual]);
-  if (hz) tone(PINO_BUZZER, hz, ms - ms / 8);    // 1/8 da nota em silencio separa as notas
+  if (hz) tone(PINO_BUZZER, hz, ms - ms / 8);
   tProximaNota = agora + ms;
   musicaNota++;
 }
 
-// ===================================================== DHT11 (temp. e umidade)
-// Espera a linha chegar ao nivel pedido; false se passar de limiteUs.
 static bool dhtEsperaNivel(byte nivel, unsigned int limiteUs) {
   unsigned long t = micros();
   while (((PIND >> PD4) & 1) != nivel) {
@@ -190,13 +145,11 @@ static bool dhtEsperaNivel(byte nivel, unsigned int limiteUs) {
   return true;
 }
 
-// Le o DHT11 (ou DHT22) sem biblioteca; true se leu e o checksum bateu. As interrupcoes ficam
-// ligadas (os servos nao tremem): bit 0 dura ~26 us, bit 1 ~70 us, limite de 45 us.
 static bool dhtLe() {
   byte dados[5] = {0, 0, 0, 0, 0};
   pinMode(PINO_DHT11, OUTPUT);
   digitalWrite(PINO_DHT11, LOW);
-  delay(20);                                       // pedido de leitura: 18 ms ou mais em baixo
+  delay(20);
   pinMode(PINO_DHT11, INPUT_PULLUP);
   if (!dhtEsperaNivel(1, 100) || !dhtEsperaNivel(0, 120) ||
       !dhtEsperaNivel(1, 120) || !dhtEsperaNivel(0, 120)) {
@@ -210,18 +163,16 @@ static bool dhtLe() {
     if (micros() - t > 45) dados[i >> 3] |= 1;
   }
   if ((byte)(dados[0] + dados[1] + dados[2] + dados[3]) != dados[4]) return false;
-  if (dados[0] < 4) {                              // DHT22 (o SimulIDE so tem este): decimos em 16 bits
+  if (dados[0] < 4) {
     dhtUmidade = (((unsigned int)dados[0] << 8) | dados[1]) / 10;
     dhtTemp10 = (dados[2] & 0x80) ? 0 : (((int)dados[2] << 8) | dados[3]);
-  } else {                                         // DHT11 (o sensor real): inteiro + decimal
+  } else {
     dhtUmidade = dados[0];
     dhtTemp10 = dados[2] * 10 + (dados[3] & 0x0F);
   }
   return true;
 }
 
-// ================================================================ LASER VL53L0X
-// So inicia o laser se ele responder no I2C; assim um sensor ausente nao trava o programa.
 static void laserProcura() {
   Wire.beginTransmission(ENDERECO_LASER);
   if (Wire.endTransmission() != 0) return;
@@ -231,7 +182,7 @@ static void laserProcura() {
   laserOk = laser.init();
   if (laserOk) {
     laser.startContinuous();
-    laser.setTimeout(100);                         // leitura sem resposta nao pode travar o loop
+    laser.setTimeout(100);
     laserFalhas = 0;
   } else {
     laserTentativas++;
@@ -239,13 +190,12 @@ static void laserProcura() {
   Wire.setClock(400000);
 }
 
-// Le a distancia (mm) e trata as falhas; chamar a cada 200 ms.
 static void laserAtualiza(unsigned long agora) {
   Wire.setClock(100000);
   uint16_t mm = laser.readRangeContinuousMillimeters();
   Wire.setClock(400000);
   if (laser.timeoutOccurred() || mm == 65535) {
-    if (++laserFalhas >= 3) {                      // 3 falhas seguidas: desiste e tenta depois
+    if (++laserFalhas >= 3) {
       laserOk = false;
       laserDistancia = -1;
       laserTentativas++;
@@ -253,12 +203,10 @@ static void laserAtualiza(unsigned long agora) {
     }
   } else {
     laserFalhas = 0;
-    laserDistancia = (mm >= 8190) ? -1 : mm;       // 8190 ou mais = nada no alcance
+    laserDistancia = (mm >= 8190) ? -1 : mm;
   }
 }
 
-// ================================================================ DISPLAY OLED
-// Escreve um texto fixo na coluna (pixels) e pagina (linha de 0 a 7) indicadas.
 static void oledTexto(byte coluna, byte pagina, const __FlashStringHelper* texto) {
   oledIni(coluna, pagina);
   oledEscP(texto);
@@ -274,7 +222,7 @@ static void telaInicial() {
   oledTexto(0, 6, F("Guilherme Ladislau"));
 }
 
-static void telaDesenhaSenha() {                   // "* * _ _"
+static void telaDesenhaSenha() {
   oledIni(43, 4);
   for (byte i = 0; i < 4; i++) {
     oledChar(i < qtdDigitos ? '*' : '_');
@@ -294,7 +242,6 @@ static void telaMensagem(const __FlashStringHelper* texto) {
   oledTexto(15, 3, texto);
 }
 
-// Desenha os textos fixos do painel e marca todos os campos como "a redesenhar".
 static void painelDesenhaFixo() {
   oledLimpa();
   oledTexto(0, 0, F("Pan : "));   oledTexto(54, 0, F(" graus"));
@@ -307,7 +254,6 @@ static void painelDesenhaFixo() {
   ultTemp10 = -9999;  ultDistancia = -9999;
 }
 
-// Redesenha so os campos cujo valor mudou.
 static void painelAtualiza() {
   if (panGraus != ultPan) {
     ultPan = panGraus;
@@ -337,7 +283,7 @@ static void painelAtualiza() {
     oledFim();
   }
 
-  int codigoDistancia = laserOk ? laserDistancia : -2;   // -2 = sem laser, -1 = fora de alcance
+  int codigoDistancia = laserOk ? laserDistancia : -2;
   if (codigoDistancia != ultDistancia) {
     ultDistancia = codigoDistancia;
     oledIni(36, 4);
@@ -350,7 +296,7 @@ static void painelAtualiza() {
       n = oledEscNum(codigoDistancia, 0);
       n += oledEscP(F(" mm"));
     }
-    while (n++ < 15) oledChar(' ');                      // apaga o resto do campo
+    while (n++ < 15) oledChar(' ');
     oledFim();
   }
 
@@ -362,8 +308,6 @@ static void painelAtualiza() {
     oledFim();
   }
 
-  // Linha 7: modo atual e teclas.
-  // 0 normal, 1 jogo, 2 fuga, 3 musica sem tocar, 4 + numero = tocando essa musica
   byte modo = modoJogo ? (emFuga ? 2 : 1) : (modoMusica ? (musicaAtual == 255 ? 3 : 4 + musicaAtual) : 0);
   if (modo != ultModo) {
     ultModo = modo;
@@ -387,24 +331,21 @@ static void painelAtualiza() {
   }
 }
 
-// ============================================================ JOGO (fuga dos servos)
-// Cada movimento mexe um servo so, alternando Pan, Tilt, Pan...; o servo pula para um
-// angulo sorteado, pelo menos 40 graus longe do atual.
 static void fugaMovimento(unsigned long agora) {
   byte novo;
   if ((MOVIMENTOS_FUGA - movimentosRestantes) % 2 == 0) {
-    do { novo = random(SERVO_MIN, SERVO_MAX + 1); } while (abs(novo - panGraus) < 40);
+    do { novo = random(SERVO_PAN_MIN, SERVO_PAN_MAX + 1); } while (abs(novo - panGraus) < 40);
     panGraus = novo;
-    pan16avos = panGraus * 16;                     // o joystick continua daqui quando o jogo acabar
+    pan16avos = panGraus * 16;
     servoPan.write(panGraus);
   } else {
-    do { novo = random(SERVO_MIN, SERVO_MAX + 1); } while (abs(novo - tiltGraus) < 40);
+    do { novo = random(SERVO_TILT_MIN, SERVO_TILT_MAX + 1); } while (abs(novo - tiltGraus) < 40);
     tiltGraus = novo;
     tilt16avos = tiltGraus * 16;
     servoTilt.write(tiltGraus);
   }
 
-  tProximoMovimento = agora + random(250, 401);    // tempo para o servo chegar (ms)
+  tProximoMovimento = agora + random(250, 401);
   movimentosRestantes--;
 }
 
@@ -414,19 +355,15 @@ static void fugaInicia(unsigned long agora) {
   fugaMovimento(agora);
 }
 
-// ==================================================================== JOYSTICK
-// Move um eixo por VELOCIDADE: quanto mais inclinado, mais rapido; no centro o servo
-// para onde esta. angulo16avos = angulo em 1/16 de grau; dt = ms desde a ultima volta.
-static void joyMoveEixo(int &angulo16avos, int leitura, int centro, bool inverte, unsigned long dt) {
+static void joyMoveEixo(int &angulo16avos, int leitura, int centro, bool inverte, byte angMin, byte angMax, unsigned long dt) {
   int desvio = leitura - centro;
   int modulo = abs(desvio);
   if (modulo <= JOY_ZONA_MORTA) return;
   long passo = (long)(modulo - JOY_ZONA_MORTA) * dt * (JOY_VEL_MAX * 16L) / (1000L * (512 - JOY_ZONA_MORTA));
   if ((desvio < 0) != inverte) passo = -passo;
-  angulo16avos = constrain(angulo16avos + passo, SERVO_MIN * 16, SERVO_MAX * 16);
+  angulo16avos = constrain(angulo16avos + passo, angMin * 16, angMax * 16);
 }
 
-// Mede onde o joystick fica em repouso (ele deve estar solto).
 static void joyCalibra() {
   long somaX = 0, somaY = 0;
   for (byte i = 0; i < 16; i++) {
@@ -436,11 +373,10 @@ static void joyCalibra() {
   }
   joyCentroX = somaX / 16;
   joyCentroY = somaY / 16;
-  if (abs(joyCentroX - 512) > 150) joyCentroX = 512;   // leitura estranha: usa o centro teorico
+  if (abs(joyCentroX - 512) > 150) joyCentroX = 512;
   if (abs(joyCentroY - 512) > 150) joyCentroY = 512;
 }
 
-// ============================================================== SETUP / LOOP
 void setup() {
   pinMode(PINO_BUZZER, OUTPUT);
   digitalWrite(PINO_BUZZER, LOW);
@@ -450,8 +386,7 @@ void setup() {
 
   Wire.begin();
   Wire.setClock(400000);
-  // Se o I2C travar, solta o barramento em 25 ms. Chamar sem #ifdef WIRE_HAS_TIMEOUT:
-  // essa macro nao existe no nucleo AVR 1.8.8.
+
   Wire.setWireTimeout(25000, true);
   oledInicia();
 
@@ -464,9 +399,8 @@ void setup() {
 
 void loop() {
   char tecla = tecladoLeTecla();
-  if (tecla && musicaAtual == 255) buzzerBipe();   // bipe em toda tecla, menos enquanto uma musica toca
+  if (tecla && musicaAtual == 255) buzzerBipe();
 
-  // ---------- Senha ----------
   if (!acessoLiberado) {
     if (tecla >= '0' && tecla <= '9' && qtdDigitos < 4) {
       senhaDigitada[qtdDigitos++] = tecla;
@@ -477,7 +411,7 @@ void loop() {
     }
 
     if (qtdDigitos == 4) {
-      delay(300);                                  // deixa o 4o '*' aparecer
+      delay(300);
       bool senhaCerta = (memcmp_P(senhaDigitada, PSTR("1234"), 4) == 0);
       telaMensagem(senhaCerta ? F("ACESSO LIBERADO") : F("ACESSO NEGADO"));
       delay(1500);
@@ -485,14 +419,14 @@ void loop() {
       qtdDigitos = 0;
       if (senhaCerta) {
         acessoLiberado = true;
-        servoPan.attach(PINO_SERVO_PAN);           // servos so ligam depois da senha: nos
-        servoTilt.attach(PINO_SERVO_TILT);         // testes, ligar antes travou o I2C
+        servoPan.attach(PINO_SERVO_PAN);
+        servoTilt.attach(PINO_SERVO_TILT);
         servoPan.write(panGraus);
         servoTilt.write(tiltGraus);
         joyCalibra();
         tUltimoLoop = millis();
         painelDesenhaFixo();
-        tDht = millis() - 2000;                    // le o DHT11 logo na entrada
+        tDht = millis() - 2000;
       } else {
         telaSenha();
       }
@@ -500,21 +434,19 @@ void loop() {
     return;
   }
 
-  // ---------- Sistema liberado ----------
   unsigned long agora = millis();
 
   unsigned long dt = agora - tUltimoLoop;
   tUltimoLoop = agora;
   if (dt > 100) dt = 100;
 
-  // Tecla A: jogo. Tecla D: musica. Um desliga o outro.
   if (tecla == 'A') {
     modoJogo = !modoJogo;
     emFuga = false;
     if (modoJogo) {
       modoMusica = false;
       musicaPara();
-      randomSeed(micros());                        // sorteio diferente a cada jogo
+      randomSeed(micros());
     }
   } else if (tecla == 'D') {
     modoMusica = !modoMusica;
@@ -527,21 +459,21 @@ void loop() {
   musicaAtualiza(agora);
 
   if (!modoJogo) {
-    // Modo normal (e musica): o joystick move os servos por velocidade.
-    joyMoveEixo(pan16avos, analogRead(PINO_JOY_X), joyCentroX, JOY_INVERTE_PAN, dt);
-    joyMoveEixo(tilt16avos, analogRead(PINO_JOY_Y), joyCentroY, JOY_INVERTE_TILT, dt);
+
+    joyMoveEixo(pan16avos, analogRead(PINO_JOY_X), joyCentroX, JOY_INVERTE_PAN, SERVO_PAN_MIN, SERVO_PAN_MAX, dt);
+    joyMoveEixo(tilt16avos, analogRead(PINO_JOY_Y), joyCentroY, JOY_INVERTE_TILT, SERVO_TILT_MIN, SERVO_TILT_MAX, dt);
     byte novoPan = pan16avos / 16, novoTilt = tilt16avos / 16;
     if (novoPan != panGraus)   { panGraus = novoPan;   servoPan.write(panGraus); }
     if (novoTilt != tiltGraus) { tiltGraus = novoTilt; servoTilt.write(tiltGraus); }
     delay(15);
   } else {
-    // Jogo: o joystick fica desligado; os servos so se mexem para fugir.
+
     if (emFuga && agora >= tProximoMovimento) {
       if (movimentosRestantes > 0) {
         fugaMovimento(agora);
       } else {
         emFuga = false;
-        tProximaFuga = agora + 300;                // da tempo do laser medir de novo
+        tProximaFuga = agora + 300;
       }
     }
     if (!emFuga && laserOk && laserDistancia >= 0 && laserDistancia <= DIST_FUGA && agora >= tProximaFuga) {
@@ -552,19 +484,16 @@ void loop() {
 
   pirPresenca = (digitalRead(PINO_PIR) == HIGH);
 
-  // Laser fora do ar: tenta de novo a cada 10 s (no maximo 3 falhas)
   if (!laserOk && laserTentativas < 3 && (long)(agora - tProximaBuscaLaser) >= 0) {
     tProximaBuscaLaser = agora + 10000;
     laserProcura();
   }
 
-  // Distancia a cada 200 ms
   if (laserOk && agora - tLaser >= 200) {
     tLaser = agora;
     laserAtualiza(agora);
   }
 
-  // Temperatura e umidade a cada 2 s (se falhar, mantem o ultimo valor)
   if (agora - tDht >= 2000) {
     tDht = agora;
     dhtLe();

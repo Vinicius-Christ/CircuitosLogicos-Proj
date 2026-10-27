@@ -1,6 +1,4 @@
-// Gerado por ferramentas/converte_musica_tone.py
 #define N_EXTRAS 4
-// Musica 6: Megalovania.ino
 #define TEMPO6 5
 static const Nota MUS6[] PROGMEM = {
   {294,25},{294,25},{587,50},{440,75},{415,50},{392,50},{349,50},{294,25},
@@ -85,7 +83,6 @@ static const Nota MUS6[] PROGMEM = {
   {261,12},{261,12},{587,50},{440,75},{415,50},{392,50},{349,50},{294,25},
   {349,25},{392,255},{0,255},{0,255},{0,60}
 };
-// Musica 7: All_Star.ino
 #define TEMPO7 5
 static const Nota MUS7[] PROGMEM = {
   {370,120},{554,60},{466,60},{466,120},{415,60},{370,60},{370,60},{494,120},
@@ -161,7 +158,6 @@ static const Nota MUS7[] PROGMEM = {
   {831,144},{740,146},{831,150},{932,95},{622,255},{0,255},{0,255},{0,255},
   {0,255},{0,125}
 };
-// Musica 8: star-wars.ino (melody1)
 #define TEMPO8 10
 static const Nota MUS8[] PROGMEM = {
   {440,50},{0,20},{440,50},{0,20},{440,50},{0,20},{349,40},{0,5},
@@ -170,7 +166,6 @@ static const Nota MUS8[] PROGMEM = {
   {698,40},{0,5},{523,20},{0,5},{784,60},{0,10},{698,40},{0,5},
   {523,20},{0,5},{440,60},{0,40}
 };
-// Musica 9: star-wars.ino (melody2)
 #define TEMPO9 10
 static const Nota MUS9[] PROGMEM = {
   {349,21},{349,21},{349,21},{466,128},{698,128},{622,21},{586,21},{523,21},
