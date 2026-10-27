@@ -67,6 +67,7 @@ Cuidados:
 - O VIN do laser VL53L0X vai no 5 V. Ele não mede bem a menos de uns 3 a 4 cm.
 - O buzzer fica no pino 1, que é o TX da serial. Por isso o programa não usa Serial, e o fio do buzzer precisa ser tirado do pino 1 na hora de gravar o Arduino. Depois é só ligar de volta.
 - Os servos só são ligados depois da senha.
+- Os dois servos puxam bastante corrente. Ligados direto no 5 V do Arduino pela USB, a tensão pode cair (medimos 3,7 V com os servos em esforço, e o ATmega a 16 MHz precisa de pelo menos 4,5 V). Aí os servos perdem força, fazem barulho como se estivessem forçando e o programa pode parar. O ideal é alimentar os servos por uma fonte de 5 V separada, com o GND ligado ao GND do Arduino, e pôr um capacitor de 470 a 1000 µF perto deles. Se não der, use uma porta USB direta do computador e um cabo curto.
 
 ## Gravar no Arduino
 
@@ -81,7 +82,7 @@ Não precisa instalar biblioteca. O display, o DHT11 e o teclado têm código pr
 2. Clique com o botão direito no Uno, escolha Load firmware e selecione `SimulIDE/RadarPanTilt_SimulIDE.hex`.
 3. Dê o play.
 
-No circuito não existe o laser, então a distância aparece como `SEM SENSOR` e o jogo não dispara. Os servos estão com pulso de 544 a 2400 µs, igual à biblioteca Servo, e o display com 400 kHz.
+No circuito não existe o laser, então a distância aparece como `SEM SENSOR` e o jogo não dispara. O buzzer está ligado ao pino 1. Os servos estão com pulso de 544 a 2400 µs, igual à biblioteca Servo, e o display com 400 kHz.
 
 Para compilar o código do simulador de novo, abra `SimulIDE/RadarPanTilt_SimulIDE/RadarPanTilt_SimulIDE.ino` e exporte o `.hex`.
 
@@ -99,7 +100,7 @@ No começo do arquivo `.ino`:
 | `JOY_VEL_MAX` | velocidade máxima dos servos |
 | `JOY_INVERTE_PAN`, `JOY_INVERTE_TILT` | 1 inverte o sentido do servo |
 
-Se um servo fizer barulho no fim do curso, aproxime o limite dele do meio. A senha está na função `loop()`.
+Se um servo fizer barulho no fim do curso, aproxime o limite dele do meio. Se o barulho acontecer em qualquer posição, o problema costuma ser a alimentação (veja Cuidados). A senha está na função `loop()`.
 
 ## Músicas extras
 

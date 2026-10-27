@@ -12,11 +12,11 @@
 
 <item itemtype="Ssd1306" CircId="Ssd1306-6" mainComp="false" Show_id="true" Show_Val="false" Pos="-100,-292" rotation="0" hflip="1" vflip="1" label="Display" idLabPos="-15.2142,-65.5953" labelrot="0" valLabPos="-16,20" valLabRot="0" Color="White" Width="128 _px" Height="64 _px" Rotate="true" Control_Code="60" Frequency="400 _kHz" />
 
-<item itemtype="Subcircuit" CircId="Uno-7" mainComp="false" Show_id="true" Show_Val="false" Pos="-408,-220" rotation="0" hflip="1" vflip="1" label="Uno-7" idLabPos="0,-20" labelrot="0" valLabPos="-16,20" valLabRot="0" Logic_Symbol="false">
-<mainCompProps MainCompId="mega328-109" Frequency="16 MHz" Auto_Load="false" saveEepr="true" MainMcu="true" SerialMon="-1" />
+<item itemtype="Subcircuit" CircId="Uno-7" mainComp="false" Show_id="true" Show_Val="false" Pos="-408,-220" rotation="0" hflip="1" vflip="1" label="Uno-7" idLabPos="172.363,-62.4539" labelrot="0" valLabPos="-16,20" valLabRot="0" Logic_Symbol="false">
+<mainCompProps MainCompId="mega328-109" Frequency="16 MHz" Program="RadarPanTilt_SimulIDE.hex" Auto_Load="false" saveEepr="true" MainMcu="true" SerialMon="-1" />
 </item>
 
-<item itemtype="Fixed Voltage" CircId="Fixed Voltage-10" mainComp="false" Show_id="true" Show_Val="false" Pos="-84,-168" rotation="-180" hflip="1" vflip="1" label="5v" idLabPos="0.656586,23.8707" labelrot="180" valLabPos="-16,8" valLabRot="0" Voltage="5 V" Out="false" />
+<item itemtype="Fixed Voltage" CircId="Fixed Voltage-10" mainComp="false" Show_id="true" Show_Val="false" Pos="-84,-168" rotation="-180" hflip="1" vflip="1" label="5v" idLabPos="0.656586,23.8707" labelrot="180" valLabPos="-16,8" valLabRot="0" Voltage="5 V" Out="true" />
 
 <item itemtype="Tunnel" CircId="Tunnel-11" mainComp="false" Show_id="false" Show_Val="false" Pos="-112,-168" rotation="0" hflip="1" vflip="1" label="5v" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Name="5v" IsBus="false" />
 
@@ -108,6 +108,14 @@
 
 <item itemtype="Tunnel" CircId="Tunnel-58" mainComp="false" Show_id="false" Show_Val="false" Pos="-240,-164" rotation="0" hflip="-1" vflip="1" label="Tunnel-58" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Name="VRX" IsBus="false" />
 
+<item itemtype="AudioOut" CircId="AudioOut-59" mainComp="false" Show_id="false" Show_Val="false" Pos="-96,-36" rotation="0" hflip="1" vflip="1" label="AudioOut-59" idLabPos="-20,-36" labelrot="0" valLabPos="-16,20" valLabRot="0" Buzzer="false" Impedance="8 Ω" Frequency="1 kHz" />
+
+<item itemtype="Tunnel" CircId="Tunnel-60" mainComp="false" Show_id="false" Show_Val="false" Pos="-116,-36" rotation="0" hflip="1" vflip="1" label="Tunnel-60" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Name="G" IsBus="false" />
+
+<item itemtype="Tunnel" CircId="Tunnel-61" mainComp="false" Show_id="false" Show_Val="false" Pos="-116,-44" rotation="0" hflip="1" vflip="1" label="Tunnel-61" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Name="buzzer" IsBus="false" />
+
+<item itemtype="Tunnel" CircId="Tunnel-62" mainComp="false" Show_id="false" Show_Val="false" Pos="-416,-196" rotation="0" hflip="1" vflip="1" label="Tunnel-62" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Name="buzzer" IsBus="false" />
+
 <item itemtype="Node" CircId="Node-20" mainComp="false" Pos="-164,-88" />
 
 <item itemtype="Connector" uid="Connector-1" startpinid="Tunnel-11-pin" endpinid="Fixed Voltage-10-outnod" pointList="-112,-168,-100,-168" />
@@ -197,5 +205,11 @@
 <item itemtype="Connector" uid="Connector-46" startpinid="Tunnel-57-pin" endpinid="Uno-7-A1" pointList="-240,-172,-256,-172" />
 
 <item itemtype="Connector" uid="Connector-47" startpinid="Tunnel-58-pin" endpinid="Uno-7-A0" pointList="-240,-164,-256,-164" />
+
+<item itemtype="Connector" uid="Connector-48" startpinid="Tunnel-60-pin" endpinid="AudioOut-59-rPin" pointList="-116,-36,-112,-36" />
+
+<item itemtype="Connector" uid="Connector-49" startpinid="Tunnel-61-pin" endpinid="AudioOut-59-lPin" pointList="-116,-44,-112,-44" />
+
+<item itemtype="Connector" uid="Connector-50" startpinid="Tunnel-62-pin" endpinid="Uno-7-1" pointList="-416,-196,-400,-196" />
 
 </circuit>
