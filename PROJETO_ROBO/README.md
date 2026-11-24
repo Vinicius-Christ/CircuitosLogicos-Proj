@@ -1,5 +1,7 @@
 # PROJETO_ROBO — Carrinho robô com desvio de obstáculos
 
+**Autores:** Vinicius Christ e Guilherme Ladislau
+
 Arduino Uno + ponte H L298N + sensor ultrassônico HC-SR04 num servo + LCD 16x2 I2C.
 
 ## Pastas

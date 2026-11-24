@@ -1,6 +1,8 @@
 /*
  * CALIBRACAO DO CENTRO DO SERVO (sensor ultrassonico)
  *
+ * Autores: Vinicius Christ e Guilherme Ladislau
+ *
  * Motores ficam DESLIGADOS. O servo (D3) varre devagar de 60 a 120 graus,
  * de 5 em 5, parando 3 s em cada angulo. O LCD mostra o angulo atual e a
  * distancia que o sensor le naquela posicao.

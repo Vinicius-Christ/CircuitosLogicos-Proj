@@ -1,5 +1,7 @@
 # ROBO_SIMULIDE — Simulação do carrinho robô no SimulIDE
 
+**Autores:** Vinicius Christ e Guilherme Ladislau
+
 Circuito do robô com a **mesma pinagem do robô real** e o programa
 `CARRINHO_ROBO` já carregado no Arduino da simulação.
 

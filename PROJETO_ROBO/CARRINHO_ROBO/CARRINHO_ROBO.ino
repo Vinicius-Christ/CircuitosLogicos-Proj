@@ -1,6 +1,8 @@
 /*
  * CARRINHO ROBO - desvio de obstaculos com servo + HC-SR04 + LCD I2C
  *
+ * Autores: Vinicius Christ e Guilherme Ladislau
+ *
  * Funcionamento:
  *   - Caminho livre (mais de 20 cm): anda rapido (VEL_RAPIDA)
  *   - Algo entre 6 e 20 cm: anda devagar (VEL_DEVAGAR)
