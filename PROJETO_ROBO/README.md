@@ -6,11 +6,9 @@ Arduino Uno + ponte H L298N + sensor ultrassônico HC-SR04 num servo + LCD 16x2 
 
 | Pasta | O que é |
 |---|---|
-| `CARRINHO_ROBO_V2/` | **Programa atual do robô** (é o que está gravado no Arduino) |
+| `CARRINHO_ROBO/` | **Código do robô** |
 | `ROBO_SIMULIDE/` | Simulação do robô no SimulIDE, com roteiro de testes |
 | `CALIBRA_SERVO/` | Programa de teste para achar o centro do servo (motores desligados) |
-| `CARRINHO_ROBO_CORRIGIDO/` | Código com a pinagem corrigida, reconstruído do firmware que estava no Arduino (referência) |
-| `BACKUP_ARDUINO_CORRIGIDO/` | Backup do firmware corrigido e como regravá-lo |
 | `bibliotecas/LiquidCrystal_I2C/` | Biblioteca do LCD (API `lcd.init()` / `lcd.backlight()`) |
 
 ## Pinagem
@@ -25,7 +23,7 @@ Arduino Uno + ponte H L298N + sensor ultrassônico HC-SR04 num servo + LCD 16x2 
 | Servo (sinal) | D3 |
 | LCD I2C (0x27) SDA / SCL | A4 / A5 |
 
-## Como o robô funciona (V2)
+## Como o robô funciona
 
 | Distância à frente | Ação |
 |---|---|
@@ -35,7 +33,7 @@ Arduino Uno + ponte H L298N + sensor ultrassônico HC-SR04 num servo + LCD 16x2 
 
 Se nenhum lado estiver livre, o robô gira para a esquerda em até 6 passos procurando saída.
 
-Todos os ajustes ficam em `#define` no topo do `CARRINHO_ROBO_V2.ino`:
+Todos os ajustes ficam em `#define` no topo do `CARRINHO_ROBO.ino`:
 velocidades (`VEL_RAPIDA`, `VEL_DEVAGAR`, `VEL_RE`, `VEL_GIRO`), distâncias,
 tempo de ré (`TEMPO_RE`), tempo de giro (`TEMPO_GIRO_90`) e ângulos do servo
 (`SERVO_CENTRO` = 60, calibrado com o `CALIBRA_SERVO`).
@@ -43,7 +41,7 @@ tempo de ré (`TEMPO_RE`), tempo de giro (`TEMPO_GIRO_90`) e ângulos do servo
 ## Como compilar
 
 1. Copie `bibliotecas/LiquidCrystal_I2C` para `Documentos\Arduino\libraries`.
-2. Abra `CARRINHO_ROBO_V2/CARRINHO_ROBO_V2.ino` na Arduino IDE.
+2. Abra `CARRINHO_ROBO/CARRINHO_ROBO.ino` na Arduino IDE.
 3. Placa **Arduino Uno**, escolha a porta e clique em Carregar.
 
 A biblioteca `Servo` já vem com a Arduino IDE.

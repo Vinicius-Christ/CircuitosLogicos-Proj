@@ -1,12 +1,12 @@
 # ROBO_SIMULIDE — Simulação do carrinho robô no SimulIDE
 
 Circuito do robô com a **mesma pinagem do robô real** e o programa
-`CARRINHO_ROBO_V2` já carregado no Arduino da simulação.
+`CARRINHO_ROBO` já carregado no Arduino da simulação.
 
 | Arquivo | O que é |
 |---|---|
-| `ROBO_V2.sim1` | Circuito do SimulIDE |
-| `CARRINHO_ROBO_V2.hex` | Programa V2 compilado (o Arduino da simulação carrega este arquivo) |
+| `ROBO.sim1` | Circuito do SimulIDE |
+| `CARRINHO_ROBO.hex` | Programa do robô compilado (o Arduino da simulação carrega este arquivo) |
 
 Os dois arquivos precisam ficar **na mesma pasta**.
 
@@ -28,9 +28,9 @@ Testado no **SimulIDE 1.1.0-SR2**.
 
 ## Como abrir e rodar
 
-1. Abra o SimulIDE e use **Arquivo → Abrir** para abrir `ROBO_V2.sim1`.
+1. Abra o SimulIDE e use **Arquivo → Abrir** para abrir `ROBO.sim1`.
 2. Se o Arduino aparecer sem programa, clique com o botão direito nele,
-   escolha **Carregar firmware** e selecione `CARRINHO_ROBO_V2.hex`.
+   escolha **Carregar firmware** e selecione `CARRINHO_ROBO.hex`.
 3. Clique no botão de **ligar a simulação** (o de energia, no topo).
 4. O LCD mostra `Carrinho Robo / Inicializando...` por 1,5 s e o robô começa a andar.
 
@@ -79,7 +79,7 @@ Estes pontos só dão para conferir no robô de verdade:
 
 ## Atualizar o programa da simulação
 
-Se mudar o `CARRINHO_ROBO_V2.ino`, gere o `.hex` de novo. Na Arduino IDE, use
+Se mudar o `../CARRINHO_ROBO/CARRINHO_ROBO.ino`, gere o `.hex` de novo. Na Arduino IDE, use
 **Sketch → Exportar binário compilado** e copie o `.hex` (o que **não** tem
-`with_bootloader` no nome) para esta pasta com o nome `CARRINHO_ROBO_V2.hex`.
+`with_bootloader` no nome) para esta pasta com o nome `CARRINHO_ROBO.hex`.
 Depois recarregue o firmware no Arduino da simulação.

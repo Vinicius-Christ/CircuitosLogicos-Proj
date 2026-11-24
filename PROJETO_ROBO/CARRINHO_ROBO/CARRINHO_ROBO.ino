@@ -1,14 +1,13 @@
 /*
- * CARRINHO ROBO V2 - desvio de obstaculos com servo + HC-SR04 + LCD I2C
+ * CARRINHO ROBO - desvio de obstaculos com servo + HC-SR04 + LCD I2C
  *
- * Baseado em ../CARRINHO_ROBO_CORRIGIDO (codigo que estava no Arduino).
- * Mudancas da V2:
- *   - Caminho livre (> 20 cm): anda rapido (VEL_RAPIDA)
+ * Funcionamento:
+ *   - Caminho livre (mais de 20 cm): anda rapido (VEL_RAPIDA)
  *   - Algo entre 6 e 20 cm: anda devagar (VEL_DEVAGAR)
  *   - Chegou a 5 cm ou menos: para, da re, o SERVO gira o sensor para a
- *     direita e para a esquerda e o robo vira para o lado mais livre
- *   - Sentido dos motores invertido (INVERTER_MOTORES): o que era "re"
- *     agora e "frente"
+ *     direita e para a esquerda, volta ao centro e o robo vira para o lado
+ *     mais livre. Sem nenhum lado livre, gira aos poucos procurando saida.
+ *   - O LCD mostra o que o robo esta fazendo e a distancia medida.
  *
  * PINAGEM
  *   Ponte H L298N              Sensor HC-SR04       LCD 16x2 I2C (0x27)
@@ -19,8 +18,8 @@
  *   IN4 -> D7
  *   ENB -> D6  (PWM)
  *
- * Bibliotecas: Servo (vem com a IDE) e "LiquidCrystal I2C"
- * (copia em ../Arduino_Libraries/LiquidCrystal_I2C, API lcd.init()).
+ * Bibliotecas: Servo (vem com a Arduino IDE) e "LiquidCrystal I2C"
+ * (copia em ../bibliotecas/LiquidCrystal_I2C).
  */
 
 #include <Wire.h>
@@ -35,7 +34,7 @@
 #define IN4 7
 #define ENB 6    // PWM motor B (direito)
 
-// true = inverte o sentido dos dois motores (a "re" vira "frente")
+// true = inverte o sentido dos dois motores (de acordo com a ligacao dos fios)
 #define INVERTER_MOTORES true
 
 // ---------- Sensor ultrassonico HC-SR04 ----------
