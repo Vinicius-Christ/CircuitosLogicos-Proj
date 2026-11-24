@@ -7,6 +7,7 @@ Arduino Uno + ponte H L298N + sensor ultrassônico HC-SR04 num servo + LCD 16x2 
 | Pasta | O que é |
 |---|---|
 | `CARRINHO_ROBO_V2/` | **Programa atual do robô** (é o que está gravado no Arduino) |
+| `ROBO_SIMULIDE/` | Simulação do robô no SimulIDE, com roteiro de testes |
 | `CALIBRA_SERVO/` | Programa de teste para achar o centro do servo (motores desligados) |
 | `CARRINHO_ROBO_CORRIGIDO/` | Código com a pinagem corrigida, reconstruído do firmware que estava no Arduino (referência) |
 | `BACKUP_ARDUINO_CORRIGIDO/` | Backup do firmware corrigido e como regravá-lo |
