@@ -67,7 +67,7 @@
 //   puxa para a DIREITA (roda esquerda mais rapida)  -> diminua
 //   puxa para a ESQUERDA (roda direita mais rapida)  -> aumente
 // Pode ser negativo (ex.: -5) se a roda esquerda continuar mais rapida.
-#define AJUSTE_ESQUERDA 0
+#define AJUSTE_ESQUERDA 4
 
 // "Tranco" na partida: forca alta por pouco tempo para o motor parado
 // sair do lugar, depois cai para a velocidade pedida.
