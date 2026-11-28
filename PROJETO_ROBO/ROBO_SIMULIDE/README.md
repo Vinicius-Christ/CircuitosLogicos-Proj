@@ -60,12 +60,12 @@ A varredura vai de **20° a 160°** de 10 em 10 graus. O centro (frente) é **90
 | # | Teste | Como fazer | O que deve acontecer |
 |---|---|---|---|
 | 1 | LCD e partida | Ligue a simulação | `Carrinho Robo / Inicializando...` e depois o estado e a distância |
-| 2 | Caminho livre | Potenciômetro em 711 Ω | `Andando...`, os dois motores para frente, PWM ~31% em ENA e ~38% em ENB (80 e 97) |
-| 3 | Devagar | 920 Ω | `Devagar...`, PWM cai para ~24% e ~30% (60 e 77) |
+| 2 | Caminho livre | Potenciômetro em 711 Ω | `Andando...`, os dois motores para frente, PWM ~31% em ENA e ~35% em ENB (80 e 88) |
+| 3 | Devagar | 920 Ω | `Devagar...`, PWM cai para ~24% e ~27% (60 e 68) |
 | 4 | Obstáculo e ré | 970 Ω | `Obstaculo encontrado!`, motores param, depois `Dando re...` com os dois motores no sentido contrário |
 | 5 | Varredura com caminho livre na frente | Mude para 711 Ω assim que aparecer `Fazendo varredura...` e deixe até o fim | O LCD mostra cada ângulo de 20° a 160°, depois `Melhor abertura / Angulo: 90` e `Melhor caminho / Frente!` |
-| 6 | Abertura à direita | Deixe 711 Ω de 20° a 60° e mude para 970 Ω a partir de 70° | `Angulo: 40` e `Melhor caminho / Direita!`; o robô gira (um motor para frente, o outro para trás) |
-| 7 | Abertura à esquerda | 970 Ω até 110° e 711 Ω de 120° a 160° | `Angulo: 140` e `Melhor caminho / Esquerda!`; o robô gira para o outro lado |
+| 6 | Abertura à direita | Deixe 711 Ω de 20° a 60° e mude para 970 Ω a partir de 70° | `Angulo: 40` e `Melhor caminho / Direita!`; o robô gira (um motor para frente, o outro para trás). Deixe 711 Ω depois do giro, senão ele mostra `Ajustando giro` e gira mais um pouco |
+| 7 | Abertura à esquerda | 970 Ω até 110° e 711 Ω de 120° a 160° | `Angulo: 140` e `Melhor caminho / Esquerda!`; o robô gira para o outro lado (deixe 711 Ω depois do giro) |
 | 8 | Sem saída | Deixe 970 Ω a varredura toda | `Sem saida! / Procurando...`, o robô gira para a esquerda aos poucos |
 | 9 | Saída encontrada | Durante o teste 8, mude para 711 Ω | `Rota encontrada! / Seguindo...` e o robô volta a andar |
 
@@ -73,7 +73,11 @@ Para ver o sentido dos motores, olhe a cor dos fios do L298: **vermelho é níve
 alto** e **azul é nível baixo**.
 
 O giro é **proporcional** ao ângulo da abertura: 90° de desvio = 1200 ms de giro,
-40° = ~530 ms. O giro mais curto é 300 ms.
+40° = ~530 ms. O giro mais curto é 300 ms. Depois do giro o robô mede a frente; se continuar
+bloqueada, mostra `Ajustando giro` e gira mais 300 ms (até 4 vezes).
+
+No início de cada movimento os dois PWM sobem por 60 ms para 140 ("tranco" da
+partida) e depois caem para a velocidade normal; dá para ver isso no analisador.
 
 ## O que a simulação não mostra
 

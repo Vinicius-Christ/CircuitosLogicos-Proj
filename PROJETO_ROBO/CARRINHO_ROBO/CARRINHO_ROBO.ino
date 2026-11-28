@@ -56,17 +56,22 @@
 #define SERVO_MIN (SERVO_CENTRO - VARREDURA_LADO)
 #define SERVO_MAX (SERVO_CENTRO + VARREDURA_LADO)
 
-// ---------- Velocidades (PWM 0-255), uma para cada motor ----------
-// O motor B recebe mais para compensar a diferenca entre os motores
-// e o robo andar reto.
-#define VEL_RAPIDA_A  80
-#define VEL_RAPIDA_B  97
-#define VEL_DEVAGAR_A 60
-#define VEL_DEVAGAR_B 77
-#define VEL_RE_A      60
-#define VEL_RE_B      77
-#define VEL_GIRO_A    50
-#define VEL_GIRO_B    67
+// ---------- Velocidades (PWM 0-255) ----------
+// Valor do motor direito (A). O esquerdo (B) recebe AJUSTE_ESQUERDA a mais.
+#define VEL_RAPIDA  80
+#define VEL_DEVAGAR 60
+#define VEL_RE      60
+#define VEL_GIRO    50
+
+// Calibracao para o robo andar reto:
+//   puxa para a DIREITA (roda esquerda mais rapida)  -> diminua
+//   puxa para a ESQUERDA (roda direita mais rapida)  -> aumente
+#define AJUSTE_ESQUERDA 8
+
+// "Tranco" na partida: forca alta por pouco tempo para o motor parado
+// sair do lugar, depois cai para a velocidade pedida.
+#define PWM_TRANCO   140
+#define TEMPO_TRANCO 60    // ms
 
 // ---------- Distancias (cm) ----------
 #define DIST_PARAR   25    // <= 25 cm: para e procura caminho
@@ -79,6 +84,8 @@
 #define TEMPO_GIRO_90    1200UL  // tempo para o robo girar ~90 graus
 #define TEMPO_GIRO_MIN   300UL   // giro mais curto (abaixo disso o motor nao sai do lugar)
 #define TEMPO_GIRO_PASSO 600UL   // passo curto da busca "sem saida"
+#define TEMPO_GIRO_EXTRA 300UL   // giro a mais se a frente ainda estiver bloqueada
+#define GIROS_EXTRA_MAX  4       // no maximo 4 giros a mais (~90 graus)
 
 // ---------- Varredura ----------
 #define MIN_LEITURAS_LIVRES 2      // minimo de leituras seguidas livres para ser abertura
@@ -102,8 +109,16 @@ void mostrarLCD(const char *linha1, const char *linha2) {
 }
 
 // ---------- Motores ----------
+// Movimento atual: -1 = parado, senao 2 bits (sentido de A e de B)
+int movimentoAtual = -1;
+
 // frenteA / frenteB: true = para frente, false = para tras
-void acionarMotores(bool frenteA, bool frenteB, int velA, int velB) {
+// vel: velocidade do motor direito (A); o esquerdo (B) recebe AJUSTE_ESQUERDA a mais
+void acionarMotores(bool frenteA, bool frenteB, int vel) {
+  int movimento = (frenteA ? 1 : 0) | (frenteB ? 2 : 0);
+  bool partindo = (movimento != movimentoAtual);  // estava parado ou mudou o sentido
+  movimentoAtual = movimento;
+
   if (INVERTER_MOTORES) {
     frenteA = !frenteA;
     frenteB = !frenteB;
@@ -112,8 +127,14 @@ void acionarMotores(bool frenteA, bool frenteB, int velA, int velB) {
   digitalWrite(IN2, frenteA ? LOW : HIGH);
   digitalWrite(IN3, frenteB ? HIGH : LOW);   // motor B (esquerdo)
   digitalWrite(IN4, frenteB ? LOW : HIGH);
-  analogWrite(ENA, constrain(velA, 0, 255));
-  analogWrite(ENB, constrain(velB, 0, 255));
+
+  if (partindo) {
+    analogWrite(ENA, PWM_TRANCO);
+    analogWrite(ENB, PWM_TRANCO);
+    delay(TEMPO_TRANCO);
+  }
+  analogWrite(ENA, constrain(vel, 0, 255));
+  analogWrite(ENB, constrain(vel + AJUSTE_ESQUERDA, 0, 255));
 }
 
 void pararMotores() {
@@ -123,24 +144,26 @@ void pararMotores() {
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, LOW);
+  movimentoAtual = -1;
 }
 
-void frente(int velA, int velB) { acionarMotores(true,  true,  velA, velB); }
-void darRe(int velA, int velB)  { acionarMotores(false, false, velA, velB); }
+void frente(int vel) { acionarMotores(true,  true,  vel); }
+void darRe(int vel)  { acionarMotores(false, false, vel); }
 
 // Gira no proprio eixo: esquerdo (B) para frente, direito (A) para tras
-void virarDireita()  { acionarMotores(false, true,  VEL_GIRO_A, VEL_GIRO_B); }
+void virarDireita()  { acionarMotores(false, true,  VEL_GIRO); }
 // Gira no proprio eixo: direito (A) para frente, esquerdo (B) para tras
-void virarEsquerda() { acionarMotores(true,  false, VEL_GIRO_A, VEL_GIRO_B); }
+void virarEsquerda() { acionarMotores(true,  false, VEL_GIRO); }
 
 // ---------- Sensor ----------
-// Faz 2 leituras, descarta as invalidas e devolve a media em cm.
+// Faz 3 leituras, descarta as invalidas e devolve a do meio (mediana) em cm.
+// Uma leitura falsa sozinha nao engana o robo.
 // Sem nenhuma leitura valida, devolve DIST_MAX (caminho livre).
 long lerDistancia() {
-  long soma = 0;
+  long leituras[3];
   int validas = 0;
 
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 3; i++) {
     digitalWrite(TRIG, LOW);
     delayMicroseconds(2);
     digitalWrite(TRIG, HIGH);
@@ -152,15 +175,21 @@ long lerDistancia() {
       long d = duracao * 0.0343 / 2;
       if (d == 0) d = 1;
       if (d <= DIST_MAX) {
-        soma += d;
-        validas++;
+        leituras[validas++] = d;
       }
     }
     delay(10);
   }
 
   if (validas == 0) return DIST_MAX;
-  return soma / validas;
+  if (validas == 1) return leituras[0];
+  if (validas == 2) return (leituras[0] + leituras[1]) / 2;
+
+  // Mediana de 3
+  long a = leituras[0], b = leituras[1], c = leituras[2];
+  if ((a <= b && b <= c) || (c <= b && b <= a)) return b;
+  if ((b <= a && a <= c) || (c <= a && a <= b)) return a;
+  return c;
 }
 
 // ---------- Varredura ----------
@@ -223,7 +252,9 @@ int procurarMelhorDirecao() {
   return melhorAngulo;
 }
 
-// Gira o robo proporcionalmente aos graus pedidos (90 graus = TEMPO_GIRO_90)
+// Gira o robo proporcionalmente aos graus pedidos (90 graus = TEMPO_GIRO_90).
+// Depois confere a frente com o sensor: se ainda estiver bloqueada (o giro
+// por tempo nao e exato), gira mais um pouco no mesmo sentido.
 void girarGraus(int graus, bool paraDireita) {
   unsigned long tempo = (unsigned long)graus * TEMPO_GIRO_90 / 90;
   if (tempo < TEMPO_GIRO_MIN) tempo = TEMPO_GIRO_MIN;
@@ -232,6 +263,17 @@ void girarGraus(int graus, bool paraDireita) {
   else virarEsquerda();
   delay(tempo);
   pararMotores();
+  delay(150);
+
+  for (int i = 0; i < GIROS_EXTRA_MAX; i++) {
+    if (lerDistancia() >= DIST_LIVRE) return;   // frente livre: pronto
+    mostrarLCD("Ajustando giro", paraDireita ? "p/ direita..." : "p/ esquerda...");
+    if (paraDireita) virarDireita();
+    else virarEsquerda();
+    delay(TEMPO_GIRO_EXTRA);
+    pararMotores();
+    delay(150);
+  }
 }
 
 // Obstaculo perto: para, recua, faz a varredura e escolhe a direcao
@@ -241,7 +283,7 @@ void procurarCaminho() {
   delay(700);
 
   mostrarLCD("Obstaculo!", "Dando re...");
-  darRe(VEL_RE_A, VEL_RE_B);
+  darRe(VEL_RE);
   delay(TEMPO_RE);
   pararMotores();
   delay(250);
@@ -254,7 +296,7 @@ void procurarCaminho() {
 
     if (abs(desvio) <= TOLERANCIA_FRENTE) {
       mostrarLCD("Melhor caminho", "Frente!");
-      frente(VEL_DEVAGAR_A, VEL_DEVAGAR_B);
+      frente(VEL_DEVAGAR);
       delay(500);
       pararMotores();
     } else if (desvio < 0) {
@@ -318,10 +360,10 @@ void loop() {
 
   const char *estado;
   if (distancia <= DIST_DEVAGAR) {
-    frente(VEL_DEVAGAR_A, VEL_DEVAGAR_B);
+    frente(VEL_DEVAGAR);
     estado = "Devagar...";
   } else {
-    frente(VEL_RAPIDA_A, VEL_RAPIDA_B);
+    frente(VEL_RAPIDA);
     estado = "Andando...";
   }
 

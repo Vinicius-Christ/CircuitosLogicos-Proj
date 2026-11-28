@@ -40,14 +40,28 @@ o quanto for preciso para ficar de frente para ela. Se a abertura estiver bem
 à frente, segue reto. Sem nenhuma abertura, gira para a esquerda em até 6
 passos procurando saída.
 
-**Velocidades** (PWM 0–255), uma para cada motor para o robô andar reto:
+**Velocidades** (PWM 0–255). O motor esquerdo recebe `AJUSTE_ESQUERDA` (+8)
+a mais que o direito, para o robô andar reto:
 
 | Movimento | Motor A (direito) | Motor B (esquerdo) |
 |---|---|---|
-| Rápido | 80 | 97 |
-| Devagar | 60 | 77 |
-| Ré | 60 | 77 |
-| Giro | 50 | 67 |
+| Rápido | 80 | 88 |
+| Devagar | 60 | 68 |
+| Ré | 60 | 68 |
+| Giro | 50 | 58 |
+
+Para calibrar, mude só o `AJUSTE_ESQUERDA`: se o robô puxa para a direita,
+diminua; se puxa para a esquerda, aumente.
+
+**Para ser mais confiável:**
+
+- **Tranco na partida:** quando o motor sai do parado ou muda de sentido, recebe
+  força alta (140) por 60 ms e depois cai para a velocidade pedida. Assim ele
+  não fica parado com PWM baixo.
+- **Giro conferido pelo sensor:** depois de virar, o robô mede a frente. Se ainda
+  estiver bloqueada, gira mais um pouco (até 4 vezes de 300 ms).
+- **Leitura pela mediana:** o sensor faz 3 leituras e usa a do meio, então uma
+  leitura falsa sozinha não engana o robô.
 
 Todos os ajustes ficam em `#define` no topo do `CARRINHO_ROBO.ino`:
 velocidades, distâncias, tempo de ré (`TEMPO_RE`), tempo de giro
