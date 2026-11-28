@@ -33,8 +33,8 @@ Arduino Uno + ponte H L298N + sensor ultrassônico HC-SR04 num servo + LCD 16x2 
 | De 26 a 50 cm | Anda devagar |
 | 25 cm ou menos | Para, dá ré por 1,5 s e faz a varredura |
 
-**Varredura:** o servo gira o sensor de 0° a 120°, de 10 em 10 graus (60° para
-cada lado da frente, que é 60°). O robô procura a **maior abertura livre**
+**Varredura:** o servo gira o sensor de 20° a 160°, de 10 em 10 graus (70° para
+cada lado da frente, que é 90°). O robô procura a **maior abertura livre**
 (60 cm ou mais em pelo menos 2 leituras seguidas), mira no centro dela e gira
 o quanto for preciso para ficar de frente para ela. Se a abertura estiver bem
 à frente, segue reto. Sem nenhuma abertura, gira para a esquerda em até 6
@@ -51,8 +51,9 @@ passos procurando saída.
 
 Todos os ajustes ficam em `#define` no topo do `CARRINHO_ROBO.ino`:
 velocidades, distâncias, tempo de ré (`TEMPO_RE`), tempo de giro
-(`TEMPO_GIRO_90`) e o servo (`SERVO_CENTRO` = 60, calibrado com o
-`CALIBRA_SERVO`; `VARREDURA_LADO`; `PASSO_VARREDURA`).
+(`TEMPO_GIRO_90`) e o servo (`SERVO_CENTRO` = 90; `VARREDURA_LADO`;
+`PASSO_VARREDURA`). Se o sensor não olhar reto, use o `CALIBRA_SERVO` para
+achar o ângulo certo e troque o `SERVO_CENTRO`.
 
 ## Como compilar
 

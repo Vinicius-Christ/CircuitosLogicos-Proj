@@ -7,7 +7,7 @@
  * Funcionamento:
  *   - Mais de 50 cm livres: anda rapido.
  *   - De 26 a 50 cm: anda devagar.
- *   - 25 cm ou menos: para, da re e o servo faz uma varredura de 60 graus
+ *   - 25 cm ou menos: para, da re e o servo faz uma varredura de 70 graus
  *     para cada lado da frente. O robo procura a maior abertura livre,
  *     mira no centro dela e gira o quanto for preciso para ficar de frente
  *     para ela. Sem nenhuma abertura, gira aos poucos procurando saida.
@@ -47,8 +47,8 @@
 
 // ---------- Servo que gira o sensor ----------
 #define PINO_SERVO       3
-#define SERVO_CENTRO     60    // calibrado: em 60 graus o sensor olha reto
-#define VARREDURA_LADO   60    // graus para cada lado do centro (0 a 120)
+#define SERVO_CENTRO     90    // em 90 graus o sensor olha reto
+#define VARREDURA_LADO   70    // graus para cada lado do centro (20 a 160)
 #define PASSO_VARREDURA  10    // graus entre uma leitura e outra
 #define TEMPO_SERVO      150   // ms para andar um passo da varredura
 #define TEMPO_SERVO_LONGO 400  // ms para saltos grandes (ir ao inicio, voltar ao centro)

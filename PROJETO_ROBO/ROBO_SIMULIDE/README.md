@@ -52,8 +52,8 @@ varredura**: o LCD mostra o ângulo de cada leitura (`20 graus 143cm`), então
 dá para trocar no momento certo. Diminuir a velocidade da simulação (por
 exemplo para 20%) ajuda.
 
-A varredura vai de **0° a 120°** de 10 em 10 graus. O centro (frente) é **60°**:
-ângulos menores que 60 são a **direita**, maiores são a **esquerda**.
+A varredura vai de **20° a 160°** de 10 em 10 graus. O centro (frente) é **90°**:
+ângulos menores que 90 são a **direita**, maiores são a **esquerda**.
 
 ## Roteiro de testes
 
@@ -63,9 +63,9 @@ A varredura vai de **0° a 120°** de 10 em 10 graus. O centro (frente) é **60�
 | 2 | Caminho livre | Potenciômetro em 711 Ω | `Andando...`, os dois motores para frente, PWM ~31% em ENA e ~38% em ENB (80 e 97) |
 | 3 | Devagar | 920 Ω | `Devagar...`, PWM cai para ~24% e ~30% (60 e 77) |
 | 4 | Obstáculo e ré | 970 Ω | `Obstaculo encontrado!`, motores param, depois `Dando re...` com os dois motores no sentido contrário |
-| 5 | Varredura com caminho livre na frente | Mude para 711 Ω assim que aparecer `Fazendo varredura...` e deixe até o fim | O LCD mostra cada ângulo de 0° a 120°, depois `Melhor abertura / Angulo: 60` e `Melhor caminho / Frente!` |
-| 6 | Abertura à direita | Deixe 711 Ω de 0° a 40° e mude para 970 Ω a partir de 50° | `Angulo: 20` e `Melhor caminho / Direita!`; o robô gira (um motor para frente, o outro para trás) |
-| 7 | Abertura à esquerda | 970 Ω até 70° e 711 Ω de 80° a 120° | `Angulo: 100` e `Melhor caminho / Esquerda!`; o robô gira para o outro lado |
+| 5 | Varredura com caminho livre na frente | Mude para 711 Ω assim que aparecer `Fazendo varredura...` e deixe até o fim | O LCD mostra cada ângulo de 20° a 160°, depois `Melhor abertura / Angulo: 90` e `Melhor caminho / Frente!` |
+| 6 | Abertura à direita | Deixe 711 Ω de 20° a 60° e mude para 970 Ω a partir de 70° | `Angulo: 40` e `Melhor caminho / Direita!`; o robô gira (um motor para frente, o outro para trás) |
+| 7 | Abertura à esquerda | 970 Ω até 110° e 711 Ω de 120° a 160° | `Angulo: 140` e `Melhor caminho / Esquerda!`; o robô gira para o outro lado |
 | 8 | Sem saída | Deixe 970 Ω a varredura toda | `Sem saida! / Procurando...`, o robô gira para a esquerda aos poucos |
 | 9 | Saída encontrada | Durante o teste 8, mude para 711 Ω | `Rota encontrada! / Seguindo...` e o robô volta a andar |
 
@@ -83,8 +83,7 @@ Estes pontos só dão para conferir no robô de verdade:
   e com PWM baixo o motor pode não sair do lugar.
 - **Ângulo do giro:** se `TEMPO_GIRO_90` (1200 ms) vira mesmo uns 90°.
 - **Andar reto:** se a diferença de velocidade entre os motores (A e B) deixa o robô reto.
-- **Centro do servo:** o centro de 60° foi calibrado no servo real com o
-  `CALIBRA_SERVO`. Na simulação o servo pode parecer torto em 60°, e isso é esperado.
+- **Centro do servo:** se o sensor olha mesmo reto em 90°.
 
 ## Atualizar o programa da simulação
 
