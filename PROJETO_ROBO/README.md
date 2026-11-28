@@ -69,6 +69,13 @@ velocidades, distâncias, tempo de ré (`TEMPO_RE`), tempo de giro
 `PASSO_VARREDURA`). Se o sensor não olhar reto, use o `CALIBRA_SERVO` para
 achar o ângulo certo e troque o `SERVO_CENTRO`.
 
+## Testes
+
+- **Robô real (27/11/2026):** anda, reduz a velocidade, para, dá ré, faz a
+  varredura e desvia. Calibrado com o servo reto em 90° e `AJUSTE_ESQUERDA` = 4
+  para andar reto.
+- **Simulação:** roteiro de testes em [`ROBO_SIMULIDE/README.md`](ROBO_SIMULIDE/README.md).
+
 ## Como compilar
 
 1. Copie `bibliotecas/LiquidCrystal_I2C` para `Documentos\Arduino\libraries`.

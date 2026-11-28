@@ -24,7 +24,7 @@ Testado no **SimulIDE 1.1.0-SR2**.
 | Servo (sinal) | D3 |
 | LCD 16x2 via I2C (PCF8574, 0x27) | A4 (SDA) / A5 (SCL) |
 
-- Motores: `MOTOR_ESQ` (saídas OUT1/OUT2) e `MOTOR_DIR` (OUT3/OUT4).
+- Motores: `MOTOR_DIR` (saídas OUT1/OUT2, motor A) e `MOTOR_ESQ` (OUT3/OUT4, motor B), igual ao robô real.
 - O **potenciômetro** ligado ao sensor define a distância que o HC-SR04 "enxerga".
 - O **analisador lógico** está ligado em ENA e ENB, para ver o PWM dos motores.
 
@@ -81,13 +81,10 @@ partida) e depois caem para a velocidade normal; dá para ver isso no analisador
 
 ## O que a simulação não mostra
 
-Estes pontos só dão para conferir no robô de verdade:
-
-- **Força dos motores:** a ponte H do SimulIDE é ideal; a L298N real perde uns 2 V,
-  e com PWM baixo o motor pode não sair do lugar.
-- **Ângulo do giro:** se `TEMPO_GIRO_90` (1200 ms) vira mesmo uns 90°.
-- **Andar reto:** se a diferença de velocidade entre os motores (A e B) deixa o robô reto.
-- **Centro do servo:** se o sensor olha mesmo reto em 90°.
+A ponte H do SimulIDE é ideal e os motores simulados são iguais, então a força
+dos motores, o tamanho real do giro e o robô andar reto só aparecem no robô de
+verdade. Esses pontos foram ajustados no robô real (27/11/2026): sensor reto
+com o servo em 90° e robô andando reto com `AJUSTE_ESQUERDA` = 4.
 
 ## Atualizar o programa da simulação
 
