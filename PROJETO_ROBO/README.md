@@ -17,10 +17,10 @@ Arduino Uno + ponte H L298N + sensor ultrassônico HC-SR04 num servo + LCD 16x2 
 
 | Peça | Pino do Arduino |
 |---|---|
-| L298N ENA (PWM) | D11 |
+| L298N ENA (PWM, motor A = direito) | D11 |
 | L298N IN1 / IN2 | D10 / D9 |
 | L298N IN3 / IN4 | D8 / D7 |
-| L298N ENB (PWM) | D6 |
+| L298N ENB (PWM, motor B = esquerdo) | D6 |
 | HC-SR04 TRIG / ECHO | D4 / D5 |
 | Servo (sinal) | D3 |
 | LCD I2C (0x27) SDA / SCL | A4 / A5 |
@@ -29,16 +29,30 @@ Arduino Uno + ponte H L298N + sensor ultrassônico HC-SR04 num servo + LCD 16x2 
 
 | Distância à frente | Ação |
 |---|---|
-| Mais de 20 cm | Anda rápido (PWM 60) |
-| De 6 a 20 cm | Anda devagar (PWM 40) |
-| 5 cm ou menos | Para, dá ré por 1,5 s, o servo olha para a direita e a esquerda, volta ao centro e o robô vira para o lado mais livre |
+| Mais de 50 cm | Anda rápido |
+| De 26 a 50 cm | Anda devagar |
+| 25 cm ou menos | Para, dá ré por 1,5 s e faz a varredura |
 
-Se nenhum lado estiver livre, o robô gira para a esquerda em até 6 passos procurando saída.
+**Varredura:** o servo gira o sensor de 0° a 120°, de 10 em 10 graus (60° para
+cada lado da frente, que é 60°). O robô procura a **maior abertura livre**
+(60 cm ou mais em pelo menos 2 leituras seguidas), mira no centro dela e gira
+o quanto for preciso para ficar de frente para ela. Se a abertura estiver bem
+à frente, segue reto. Sem nenhuma abertura, gira para a esquerda em até 6
+passos procurando saída.
+
+**Velocidades** (PWM 0–255), uma para cada motor para o robô andar reto:
+
+| Movimento | Motor A (direito) | Motor B (esquerdo) |
+|---|---|---|
+| Rápido | 80 | 97 |
+| Devagar | 60 | 77 |
+| Ré | 60 | 77 |
+| Giro | 50 | 67 |
 
 Todos os ajustes ficam em `#define` no topo do `CARRINHO_ROBO.ino`:
-velocidades (`VEL_RAPIDA`, `VEL_DEVAGAR`, `VEL_RE`, `VEL_GIRO`), distâncias,
-tempo de ré (`TEMPO_RE`), tempo de giro (`TEMPO_GIRO_90`) e ângulos do servo
-(`SERVO_CENTRO` = 60, calibrado com o `CALIBRA_SERVO`).
+velocidades, distâncias, tempo de ré (`TEMPO_RE`), tempo de giro
+(`TEMPO_GIRO_90`) e o servo (`SERVO_CENTRO` = 60, calibrado com o
+`CALIBRA_SERVO`; `VARREDURA_LADO`; `PASSO_VARREDURA`).
 
 ## Como compilar
 

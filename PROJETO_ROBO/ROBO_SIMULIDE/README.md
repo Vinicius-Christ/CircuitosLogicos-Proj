@@ -38,44 +38,51 @@ Testado no **SimulIDE 1.1.0-SR2**.
 
 ## Como mudar a distância
 
-Clique no potenciômetro e mude o valor dele. Valores usados nos testes:
+Clique no potenciômetro e mude o valor dele. Na prática, distância ≈ (1000 − Ω) ÷ 2:
 
 | Potenciômetro | Distância lida | Faixa |
 |---|---|---|
-| 711 Ω | ~143 cm | Caminho livre |
-| 970 Ω | ~14 cm | Devagar |
-| 994 Ω | ~3 cm | Obstáculo |
+| 711 Ω | ~143 cm | Caminho livre (anda rápido) |
+| 920 Ω | ~40 cm | Devagar |
+| 970 Ω | ~14 cm | Obstáculo (≤ 25 cm) |
 
 No SimulIDE o sensor lê a **mesma distância para qualquer ângulo do servo**.
-Para simular um lado livre e o outro bloqueado, mude o potenciômetro entre a
-leitura da direita e a da esquerda (veja os testes 5 e 6). Diminuir a velocidade
-da simulação (por exemplo para 20%) ajuda a fazer a troca no momento certo.
+Para simular uma abertura só de um lado, mude o potenciômetro **durante a
+varredura**: o LCD mostra o ângulo de cada leitura (`20 graus 143cm`), então
+dá para trocar no momento certo. Diminuir a velocidade da simulação (por
+exemplo para 20%) ajuda.
+
+A varredura vai de **0° a 120°** de 10 em 10 graus. O centro (frente) é **60°**:
+ângulos menores que 60 são a **direita**, maiores são a **esquerda**.
 
 ## Roteiro de testes
 
 | # | Teste | Como fazer | O que deve acontecer |
 |---|---|---|---|
 | 1 | LCD e partida | Ligue a simulação | `Carrinho Robo / Inicializando...` e depois o estado e a distância |
-| 2 | Caminho livre | Potenciômetro em 711 Ω | `Andando...`, os dois motores para frente, PWM ~24% no analisador (valor 60) |
-| 3 | Devagar | 970 Ω | `Devagar...`, PWM cai para ~16% (valor 40) |
-| 4 | Obstáculo e ré | 994 Ω | `Obstaculo encontrado!`, motores param, depois `Dando re...` com os dois motores no sentido contrário |
-| 5 | Servo e escolha da esquerda | Deixe em 994 Ω enquanto o servo olha para a direita (0°); mude para 711 Ω quando ele for para a esquerda (120°) | O servo volta ao centro (60°) e o LCD mostra `Indo p/ Esquerda`; um motor gira para frente e o outro para trás |
-| 6 | Escolha da direita | 711 Ω com o servo na direita, 994 Ω com o servo na esquerda | `Indo p/ Direita` e o robô gira para o outro lado |
-| 7 | Sem saída | Deixe 994 Ω nas duas leituras | `Sem saida aqui! / Buscando saida..`, o robô gira para a esquerda aos poucos |
-| 8 | Saída encontrada | Durante o teste 7, mude para 711 Ω | `Rota encontrada! / Seguindo...` e o robô volta a andar |
+| 2 | Caminho livre | Potenciômetro em 711 Ω | `Andando...`, os dois motores para frente, PWM ~31% em ENA e ~38% em ENB (80 e 97) |
+| 3 | Devagar | 920 Ω | `Devagar...`, PWM cai para ~24% e ~30% (60 e 77) |
+| 4 | Obstáculo e ré | 970 Ω | `Obstaculo encontrado!`, motores param, depois `Dando re...` com os dois motores no sentido contrário |
+| 5 | Varredura com caminho livre na frente | Mude para 711 Ω assim que aparecer `Fazendo varredura...` e deixe até o fim | O LCD mostra cada ângulo de 0° a 120°, depois `Melhor abertura / Angulo: 60` e `Melhor caminho / Frente!` |
+| 6 | Abertura à direita | Deixe 711 Ω de 0° a 40° e mude para 970 Ω a partir de 50° | `Angulo: 20` e `Melhor caminho / Direita!`; o robô gira (um motor para frente, o outro para trás) |
+| 7 | Abertura à esquerda | 970 Ω até 70° e 711 Ω de 80° a 120° | `Angulo: 100` e `Melhor caminho / Esquerda!`; o robô gira para o outro lado |
+| 8 | Sem saída | Deixe 970 Ω a varredura toda | `Sem saida! / Procurando...`, o robô gira para a esquerda aos poucos |
+| 9 | Saída encontrada | Durante o teste 8, mude para 711 Ω | `Rota encontrada! / Seguindo...` e o robô volta a andar |
 
 Para ver o sentido dos motores, olhe a cor dos fios do L298: **vermelho é nível
 alto** e **azul é nível baixo**.
 
-Resultado do teste feito em 24/11/2026: **todos os 8 testes passaram.**
+O giro é **proporcional** ao ângulo da abertura: 90° de desvio = 1200 ms de giro,
+40° = ~530 ms. O giro mais curto é 300 ms.
 
 ## O que a simulação não mostra
 
 Estes pontos só dão para conferir no robô de verdade:
 
 - **Força dos motores:** a ponte H do SimulIDE é ideal; a L298N real perde uns 2 V,
-  e com PWM baixo (40) o motor pode não sair do lugar.
+  e com PWM baixo o motor pode não sair do lugar.
 - **Ângulo do giro:** se `TEMPO_GIRO_90` (1200 ms) vira mesmo uns 90°.
+- **Andar reto:** se a diferença de velocidade entre os motores (A e B) deixa o robô reto.
 - **Centro do servo:** o centro de 60° foi calibrado no servo real com o
   `CALIBRA_SERVO`. Na simulação o servo pode parecer torto em 60°, e isso é esperado.
 

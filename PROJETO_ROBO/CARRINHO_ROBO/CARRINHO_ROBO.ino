@@ -1,24 +1,26 @@
 /*
- * CARRINHO ROBO - desvio de obstaculos com servo + HC-SR04 + LCD I2C
+ * CARRINHO ROBO - desvio inteligente de obstaculos
+ * Servo + HC-SR04 + LCD I2C
  *
  * Autores: Vinicius Christ e Guilherme Ladislau
  *
  * Funcionamento:
- *   - Caminho livre (mais de 20 cm): anda rapido (VEL_RAPIDA)
- *   - Algo entre 6 e 20 cm: anda devagar (VEL_DEVAGAR)
- *   - Chegou a 5 cm ou menos: para, da re, o SERVO gira o sensor para a
- *     direita e para a esquerda, volta ao centro e o robo vira para o lado
- *     mais livre. Sem nenhum lado livre, gira aos poucos procurando saida.
+ *   - Mais de 50 cm livres: anda rapido.
+ *   - De 26 a 50 cm: anda devagar.
+ *   - 25 cm ou menos: para, da re e o servo faz uma varredura de 60 graus
+ *     para cada lado da frente. O robo procura a maior abertura livre,
+ *     mira no centro dela e gira o quanto for preciso para ficar de frente
+ *     para ela. Sem nenhuma abertura, gira aos poucos procurando saida.
  *   - O LCD mostra o que o robo esta fazendo e a distancia medida.
  *
  * PINAGEM
- *   Ponte H L298N              Sensor HC-SR04       LCD 16x2 I2C (0x27)
- *   ENA -> D11 (PWM)           TRIG -> D4           SDA -> A4
- *   IN1 -> D10                 ECHO -> D5           SCL -> A5
+ *   Ponte H L298N                       Sensor HC-SR04    LCD 16x2 I2C (0x27)
+ *   ENA -> D11 (PWM motor A, direito)   TRIG -> D4        SDA -> A4
+ *   IN1 -> D10                          ECHO -> D5        SCL -> A5
  *   IN2 -> D9
- *   IN3 -> D8                  Servo (sinal) -> D3
+ *   IN3 -> D8                           Servo (sinal) -> D3
  *   IN4 -> D7
- *   ENB -> D6  (PWM)
+ *   ENB -> D6  (PWM motor B, esquerdo)
  *
  * Bibliotecas: Servo (vem com a Arduino IDE) e "LiquidCrystal I2C"
  * (copia em ../bibliotecas/LiquidCrystal_I2C).
@@ -29,12 +31,12 @@
 #include <LiquidCrystal_I2C.h>
 
 // ---------- Ponte H L298N ----------
-#define ENA 11   // PWM motor A (esquerdo)
+#define ENA 11   // PWM motor A (direito)
 #define IN1 10
 #define IN2 9
 #define IN3 8
 #define IN4 7
-#define ENB 6    // PWM motor B (direito)
+#define ENB 6    // PWM motor B (esquerdo)
 
 // true = inverte o sentido dos dois motores (de acordo com a ligacao dos fios)
 #define INVERTER_MOTORES true
@@ -44,35 +46,43 @@
 #define ECHO 5
 
 // ---------- Servo que gira o sensor ----------
-#define PINO_SERVO     3
-#define SERVO_CENTRO   60    // calibrado: em 60 graus o sensor olha reto
-// Lados a 60 graus do centro (o servo nao passa de 0, entao 60 e o maximo
-// simetrico). Troque os dois valores se o servo olhar para o lado errado.
-#define SERVO_DIREITA  0
-#define SERVO_ESQUERDA 120
-#define TEMPO_SERVO    400   // ms para o servo chegar na posicao
+#define PINO_SERVO       3
+#define SERVO_CENTRO     60    // calibrado: em 60 graus o sensor olha reto
+#define VARREDURA_LADO   60    // graus para cada lado do centro (0 a 120)
+#define PASSO_VARREDURA  10    // graus entre uma leitura e outra
+#define TEMPO_SERVO      150   // ms para andar um passo da varredura
+#define TEMPO_SERVO_LONGO 400  // ms para saltos grandes (ir ao inicio, voltar ao centro)
 
-// ---------- Velocidades (PWM 0-255) ----------
-#define VEL_RAPIDA  60    // caminho livre
-#define VEL_DEVAGAR 40    // algo a 20 cm ou menos
-#define VEL_RE      VEL_DEVAGAR  // re na mesma velocidade da baixa
-#define VEL_GIRO    50    // ao mudar, recalibre TEMPO_GIRO_90 abaixo
+#define SERVO_MIN (SERVO_CENTRO - VARREDURA_LADO)
+#define SERVO_MAX (SERVO_CENTRO + VARREDURA_LADO)
+
+// ---------- Velocidades (PWM 0-255), uma para cada motor ----------
+// O motor B recebe mais para compensar a diferenca entre os motores
+// e o robo andar reto.
+#define VEL_RAPIDA_A  80
+#define VEL_RAPIDA_B  97
+#define VEL_DEVAGAR_A 60
+#define VEL_DEVAGAR_B 77
+#define VEL_RE_A      60
+#define VEL_RE_B      77
+#define VEL_GIRO_A    50
+#define VEL_GIRO_B    67
 
 // ---------- Distancias (cm) ----------
-#define DIST_PARAR   5     // <= 5 cm: para e procura caminho
-#define DIST_DEVAGAR 20    // <= 20 cm: diminui a velocidade
-#define DIST_LIVRE   19    // a partir disso o lado e considerado livre
+#define DIST_PARAR   25    // <= 25 cm: para e procura caminho
+#define DIST_DEVAGAR 50    // <= 50 cm: anda devagar
+#define DIST_LIVRE   60    // a partir disso a direcao e considerada livre
 #define DIST_MAX     400
 
-// ---------- Tempo de re (ms) ----------
-// Quanto maior, mais longe o robo recua antes de procurar caminho
-#define TEMPO_RE 1500    // era 450
+// ---------- Tempos (ms) ----------
+#define TEMPO_RE         1500UL
+#define TEMPO_GIRO_90    1200UL  // tempo para o robo girar ~90 graus
+#define TEMPO_GIRO_MIN   300UL   // giro mais curto (abaixo disso o motor nao sai do lugar)
+#define TEMPO_GIRO_PASSO 600UL   // passo curto da busca "sem saida"
 
-// ---------- Tempos de giro do robo (ms) ----------
-// Com VEL_GIRO 180 o robo virava ~90 graus em 450 ms. Com 50 e estimativa:
-// se virar MENOS que 90 graus aumente, se virar MAIS diminua.
-#define TEMPO_GIRO_90    1200
-#define TEMPO_GIRO_PASSO (TEMPO_GIRO_90 / 2)  // passo curto da busca "sem saida"
+// ---------- Varredura ----------
+#define MIN_LEITURAS_LIVRES 2      // minimo de leituras seguidas livres para ser abertura
+#define TOLERANCIA_FRENTE   10     // abertura a ate 10 graus do centro: segue reto
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 Servo servoSensor;
@@ -92,18 +102,18 @@ void mostrarLCD(const char *linha1, const char *linha2) {
 }
 
 // ---------- Motores ----------
-// sentidoA / sentidoB: true = para frente, false = para tras
-void acionarMotores(bool frenteA, bool frenteB, int vel) {
+// frenteA / frenteB: true = para frente, false = para tras
+void acionarMotores(bool frenteA, bool frenteB, int velA, int velB) {
   if (INVERTER_MOTORES) {
     frenteA = !frenteA;
     frenteB = !frenteB;
   }
-  digitalWrite(IN1, frenteA ? HIGH : LOW);
+  digitalWrite(IN1, frenteA ? HIGH : LOW);   // motor A (direito)
   digitalWrite(IN2, frenteA ? LOW : HIGH);
-  digitalWrite(IN3, frenteB ? HIGH : LOW);
+  digitalWrite(IN3, frenteB ? HIGH : LOW);   // motor B (esquerdo)
   digitalWrite(IN4, frenteB ? LOW : HIGH);
-  analogWrite(ENA, vel);
-  analogWrite(ENB, vel);
+  analogWrite(ENA, constrain(velA, 0, 255));
+  analogWrite(ENB, constrain(velB, 0, 255));
 }
 
 void pararMotores() {
@@ -115,10 +125,13 @@ void pararMotores() {
   digitalWrite(IN4, LOW);
 }
 
-void frente(int vel)  { acionarMotores(true,  true,  vel); }
-void re(int vel)      { acionarMotores(false, false, vel); }
-void virarDireita()   { acionarMotores(true,  false, VEL_GIRO); }  // A frente, B tras
-void virarEsquerda()  { acionarMotores(false, true,  VEL_GIRO); }  // A tras, B frente
+void frente(int velA, int velB) { acionarMotores(true,  true,  velA, velB); }
+void darRe(int velA, int velB)  { acionarMotores(false, false, velA, velB); }
+
+// Gira no proprio eixo: esquerdo (B) para frente, direito (A) para tras
+void virarDireita()  { acionarMotores(false, true,  VEL_GIRO_A, VEL_GIRO_B); }
+// Gira no proprio eixo: direito (A) para frente, esquerdo (B) para tras
+void virarEsquerda() { acionarMotores(true,  false, VEL_GIRO_A, VEL_GIRO_B); }
 
 // ---------- Sensor ----------
 // Faz 2 leituras, descarta as invalidas e devolve a media em cm.
@@ -150,61 +163,113 @@ long lerDistancia() {
   return soma / validas;
 }
 
-// Gira o servo para um angulo, espera e mede
-long medirNoAngulo(int angulo) {
-  servoSensor.write(angulo);
-  delay(TEMPO_SERVO);
-  return lerDistancia();
-}
-
-// Obstaculo a 5 cm: para, recua, olha para os lados com o servo e escolhe
-void procurarCaminho() {
+// ---------- Varredura ----------
+// Gira o servo de SERVO_MIN a SERVO_MAX medindo a distancia, procura a maior
+// sequencia de leituras livres e devolve o angulo do centro dessa abertura.
+// Devolve -1 se nao houver nenhuma abertura.
+int procurarMelhorDirecao() {
+  const int TOTAL = (SERVO_MAX - SERVO_MIN) / PASSO_VARREDURA + 1;
+  long distancias[TOTAL];
   char linha[17];
 
+  mostrarLCD("Fazendo", "varredura...");
+
+  // Primeiro salto e grande (do centro ao inicio): espera mais
+  servoSensor.write(SERVO_MIN);
+  delay(TEMPO_SERVO_LONGO);
+
+  for (int i = 0; i < TOTAL; i++) {
+    int angulo = SERVO_MIN + i * PASSO_VARREDURA;
+    servoSensor.write(angulo);
+    delay(TEMPO_SERVO);
+    distancias[i] = lerDistancia();
+
+    snprintf(linha, sizeof(linha), "%3d graus %3ldcm", angulo, distancias[i]);
+    mostrarLCD("Analisando rota", linha);
+  }
+
+  servoSensor.write(SERVO_CENTRO);
+  delay(TEMPO_SERVO_LONGO);
+
+  // Maior sequencia de leituras livres
+  int melhorInicio = -1;
+  int maiorTamanho = 0;
+  int inicioAtual = 0;
+  int tamanhoAtual = 0;
+
+  for (int i = 0; i < TOTAL; i++) {
+    if (distancias[i] >= DIST_LIVRE) {
+      if (tamanhoAtual == 0) inicioAtual = i;
+      tamanhoAtual++;
+      if (tamanhoAtual > maiorTamanho) {
+        maiorTamanho = tamanhoAtual;
+        melhorInicio = inicioAtual;
+      }
+    } else {
+      tamanhoAtual = 0;
+    }
+  }
+
+  if (maiorTamanho < MIN_LEITURAS_LIVRES) return -1;
+
+  int anguloInicio = SERVO_MIN + melhorInicio * PASSO_VARREDURA;
+  int anguloFim = anguloInicio + (maiorTamanho - 1) * PASSO_VARREDURA;
+  int melhorAngulo = (anguloInicio + anguloFim) / 2;
+
+  snprintf(linha, sizeof(linha), "Angulo: %3d", melhorAngulo);
+  mostrarLCD("Melhor abertura", linha);
+  delay(500);
+
+  return melhorAngulo;
+}
+
+// Gira o robo proporcionalmente aos graus pedidos (90 graus = TEMPO_GIRO_90)
+void girarGraus(int graus, bool paraDireita) {
+  unsigned long tempo = (unsigned long)graus * TEMPO_GIRO_90 / 90;
+  if (tempo < TEMPO_GIRO_MIN) tempo = TEMPO_GIRO_MIN;
+
+  if (paraDireita) virarDireita();
+  else virarEsquerda();
+  delay(tempo);
+  pararMotores();
+}
+
+// Obstaculo perto: para, recua, faz a varredura e escolhe a direcao
+void procurarCaminho() {
   pararMotores();
   mostrarLCD("Obstaculo", "encontrado!");
   delay(700);
 
   mostrarLCD("Obstaculo!", "Dando re...");
-  re(VEL_RE);
+  darRe(VEL_RE_A, VEL_RE_B);
   delay(TEMPO_RE);
   pararMotores();
   delay(250);
 
-  mostrarLCD("Procurando", "nova rota...");
+  int melhorAngulo = procurarMelhorDirecao();
 
-  long distDireita = medirNoAngulo(SERVO_DIREITA);
-  snprintf(linha, sizeof(linha), "Direita: %3ld cm", distDireita);
-  mostrarLCD("Procurando rota", linha);
-  delay(500);
+  if (melhorAngulo != -1) {
+    // Angulo menor que o centro = direita; maior = esquerda
+    int desvio = melhorAngulo - SERVO_CENTRO;
 
-  long distEsquerda = medirNoAngulo(SERVO_ESQUERDA);
-  snprintf(linha, sizeof(linha), "Esquerda:%3ld cm", distEsquerda);
-  mostrarLCD("Procurando rota", linha);
-  delay(500);
-
-  servoSensor.write(SERVO_CENTRO);
-  delay(TEMPO_SERVO);
-
-  if (distEsquerda >= distDireita && distEsquerda >= DIST_LIVRE) {
-    mostrarLCD("Mudando direcao", "Indo p/ Esquerda");
-    virarEsquerda();
-    delay(TEMPO_GIRO_90);
-    pararMotores();
-    delay(300);
-    return;
-  }
-  if (distDireita > distEsquerda && distDireita >= DIST_LIVRE) {
-    mostrarLCD("Mudando direcao", "Indo p/ Direita");
-    virarDireita();
-    delay(TEMPO_GIRO_90);
-    pararMotores();
+    if (abs(desvio) <= TOLERANCIA_FRENTE) {
+      mostrarLCD("Melhor caminho", "Frente!");
+      frente(VEL_DEVAGAR_A, VEL_DEVAGAR_B);
+      delay(500);
+      pararMotores();
+    } else if (desvio < 0) {
+      mostrarLCD("Melhor caminho", "Direita!");
+      girarGraus(-desvio, true);
+    } else {
+      mostrarLCD("Melhor caminho", "Esquerda!");
+      girarGraus(desvio, false);
+    }
     delay(300);
     return;
   }
 
-  // Nenhum lado livre: gira o robo aos poucos (sensor no centro)
-  mostrarLCD("Sem saida aqui!", "Buscando saida..");
+  // Nenhuma abertura: gira aos poucos (sensor no centro) procurando saida
+  mostrarLCD("Sem saida!", "Procurando...");
   for (int tentativa = 0; tentativa < 6; tentativa++) {
     virarEsquerda();
     delay(TEMPO_GIRO_PASSO);
@@ -216,8 +281,8 @@ void procurarCaminho() {
       return;
     }
   }
-  mostrarLCD("Mudando direcao", "Tentando seguir");
-  delay(300);
+  mostrarLCD("Sem caminho!", "Tentando outra");
+  delay(500);
 }
 
 void setup() {
@@ -253,10 +318,10 @@ void loop() {
 
   const char *estado;
   if (distancia <= DIST_DEVAGAR) {
-    frente(VEL_DEVAGAR);
+    frente(VEL_DEVAGAR_A, VEL_DEVAGAR_B);
     estado = "Devagar...";
   } else {
-    frente(VEL_RAPIDA);
+    frente(VEL_RAPIDA_A, VEL_RAPIDA_B);
     estado = "Andando...";
   }
 
