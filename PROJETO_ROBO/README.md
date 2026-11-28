@@ -10,6 +10,7 @@ Arduino Uno + ponte H L298N + sensor ultrassônico HC-SR04 num servo + LCD 16x2 
 |---|---|
 | `CARRINHO_ROBO/` | **Código do robô** |
 | `ROBO_SIMULIDE/` | Simulação do robô no SimulIDE, com roteiro de testes |
+| `VIDEO/` | Vídeo do robô funcionando (`video_carrinho_robo.mp4`, 54 s) |
 | `CALIBRA_SERVO/` | Programa de teste para achar o centro do servo (motores desligados) |
 | `bibliotecas/LiquidCrystal_I2C/` | Biblioteca do LCD (API `lcd.init()` / `lcd.backlight()`) |
 
@@ -74,6 +75,7 @@ achar o ângulo certo e troque o `SERVO_CENTRO`.
 - **Robô real (27/11/2026):** anda, reduz a velocidade, para, dá ré, faz a
   varredura e desvia. Calibrado com o servo reto em 90° e `AJUSTE_ESQUERDA` = 4
   para andar reto.
+- **Vídeo:** [`VIDEO/video_carrinho_robo.mp4`](VIDEO/video_carrinho_robo.mp4), o robô funcionando (54 s).
 - **Simulação:** roteiro de testes em [`ROBO_SIMULIDE/README.md`](ROBO_SIMULIDE/README.md).
 
 ## Como compilar
