@@ -60,8 +60,8 @@ A varredura vai de **20° a 160°** de 10 em 10 graus. O centro (frente) é **90
 | # | Teste | Como fazer | O que deve acontecer |
 |---|---|---|---|
 | 1 | LCD e partida | Ligue a simulação | `Carrinho Robo / Inicializando...` e depois o estado e a distância |
-| 2 | Caminho livre | Potenciômetro em 711 Ω | `Andando...`, os dois motores para frente, PWM ~31% em ENA e ~35% em ENB (80 e 88) |
-| 3 | Devagar | 920 Ω | `Devagar...`, PWM cai para ~24% e ~27% (60 e 68) |
+| 2 | Caminho livre | Potenciômetro em 711 Ω | `Andando...`, os dois motores para frente, PWM ~31% em ENA e ENB (80) |
+| 3 | Devagar | 920 Ω | `Devagar...`, PWM cai para ~24% (60) |
 | 4 | Obstáculo e ré | 970 Ω | `Obstaculo encontrado!`, motores param, depois `Dando re...` com os dois motores no sentido contrário |
 | 5 | Varredura com caminho livre na frente | Mude para 711 Ω assim que aparecer `Fazendo varredura...` e deixe até o fim | O LCD mostra cada ângulo de 20° a 160°, depois `Melhor abertura / Angulo: 90` e `Melhor caminho / Frente!` |
 | 6 | Abertura à direita | Deixe 711 Ω de 20° a 60° e mude para 970 Ω a partir de 70° | `Angulo: 40` e `Melhor caminho / Direita!`; o robô gira (um motor para frente, o outro para trás). Deixe 711 Ω depois do giro, senão ele mostra `Ajustando giro` e gira mais um pouco |

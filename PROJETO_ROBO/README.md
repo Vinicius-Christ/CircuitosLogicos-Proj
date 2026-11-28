@@ -40,18 +40,18 @@ o quanto for preciso para ficar de frente para ela. Se a abertura estiver bem
 à frente, segue reto. Sem nenhuma abertura, gira para a esquerda em até 6
 passos procurando saída.
 
-**Velocidades** (PWM 0–255). O motor esquerdo recebe `AJUSTE_ESQUERDA` (+8)
-a mais que o direito, para o robô andar reto:
+**Velocidades** (PWM 0–255). O motor esquerdo recebe `AJUSTE_ESQUERDA` a mais
+que o direito, para o robô andar reto. Hoje o ajuste é **0** (os dois iguais):
 
 | Movimento | Motor A (direito) | Motor B (esquerdo) |
 |---|---|---|
-| Rápido | 80 | 88 |
-| Devagar | 60 | 68 |
-| Ré | 60 | 68 |
-| Giro | 50 | 58 |
+| Rápido | 80 | 80 |
+| Devagar | 60 | 60 |
+| Ré | 60 | 60 |
+| Giro | 50 | 50 |
 
 Para calibrar, mude só o `AJUSTE_ESQUERDA`: se o robô puxa para a direita,
-diminua; se puxa para a esquerda, aumente.
+diminua (pode ser negativo); se puxa para a esquerda, aumente.
 
 **Para ser mais confiável:**
 
